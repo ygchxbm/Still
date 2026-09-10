@@ -1,0 +1,1169 @@
+<!doctype html>
+<!--
+版本：v1.7 方案存档；最终确认 1:C、3:C2、5:H；默认自动跟随系统。
+基线：../v1.6/留白-v1.6-定稿.html（v1.6 已定稿）
+修改项：1A 状态栏、1B 悬浮块、1C 边缘胶囊、1D 边缘进度条；2A 桌面、2B 全屏模拟。
+已确认事项：沿用 v1.6 定稿的产品界面与交互规则。
+已确认补充：C 边缘胶囊背景随当前任务色变化，使用浅色混合保持读数清晰。
+新增补充：3G 柔隐胶囊、3H 悬字胶囊，均沿用 A 的活动态，5 秒无操作进入沉浸，操作恢复。
+新增补充：3I 标准液玻（薄玻璃边缘、低模糊），3J 通透液玻（弧面高光、厚边缘、任务色焦散近似）；CSS 模拟，不等同系统液态玻璃或真实光学折射。
+当前选项：仅保留 C、D、I，新增 C2、D2、I2；新三项始终采用 I 玻璃材质与任务同色半粗文字，操作不切换材质。其他编号停用，不复用。
+待确认事项：倒计时展示与 C、D、I、C2、D2、I2 六种胶囊样式；Tab 仅预览，不代表确认。
+新增：3A 当前方案；3B 5 秒无胶囊操作淡化背景与边框；3C 刻环、3D 书签为原创；3E 参考 DynamicLake 的深色岛屿、3F 参考 Session mini-player 的紧凑仪表。市场来源用于设计参考，不声称销量排名。
+模拟边界：页面内模拟全屏场景，不代表 macOS 跨全屏空间窗口已实现。提示跟随 menuTask；无运行任务隐藏。
+原生实现与验收：本版尚未进入实现与验收。
+-->
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>留白 V1.7 · 方案存档</title><style>
+:root{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Display","PingFang SC",sans-serif;color:#203637;font-size:14px;--surface:rgba(243,252,251,.68);--card:rgba(255,255,255,.44);--line:rgba(255,255,255,.7);--muted:#617b7c;--accent:#328f87;--ink:#203637;--control:rgba(255,255,255,.47)}*{box-sizing:border-box}body{margin:0;min-height:100vh;overflow-x:hidden}button,input,select{font:inherit;color:inherit}button,select{cursor:pointer}button{border:1px solid var(--line);background:var(--control);border-radius:12px;padding:10px 14px;transition:background .18s,transform .18s}button:hover{background:rgba(255,255,255,.75)}button:active{transform:scale(.97)}button:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid #47a89b;outline-offset:3px}[hidden]{display:none!important}.wallpaper{position:fixed;inset:0;z-index:-2;background:linear-gradient(130deg,#afced0 0%,#70a5aa 42%,#295b67 100%);overflow:hidden}.wallpaper i{position:absolute;display:block;border-radius:50%;box-shadow:inset 0 12px 60px #c0e9e8aa,0 -3px 25px #a7d6d677;background:linear-gradient(180deg,#c6e6e4aa,#3f858d88 65%,#163f50)}.wallpaper i:nth-child(1){width:140vw;height:100vh;left:-50vw;top:-63vh;transform:rotate(-15deg)}.wallpaper i:nth-child(2){width:145vw;height:100vh;left:18vw;top:36vh;transform:rotate(-24deg)}.wallpaper i:nth-child(3){width:120vw;height:75vh;left:-49vw;top:79vh;transform:rotate(24deg)}.menubar{height:34px;background:#d9eceb77;backdrop-filter:blur(30px);display:flex;justify-content:space-between;padding:0 25px;align-items:center;font-size:12px}.menuleft,.menuright{display:flex;align-items:center;gap:24px}.menuleft b{font-size:21px}#tray{position:relative;padding:4px 12px 6px;border:0;border-radius:5px;font-variant-numeric:tabular-nums;background:#ffffff35;min-width:87px}.traytrack{position:absolute;height:2px;bottom:1px;left:10px;right:10px;background:#234e4f22}.traytrack i{height:100%;display:block;background:#236d64;transition:width .3s}.glass{background:var(--surface);border:1px solid var(--line);box-shadow:0 24px 70px #143e4330,inset 0 1px 0 #ffffff90;backdrop-filter:blur(36px) saturate(1.25);-webkit-backdrop-filter:blur(36px) saturate(1.25)}main{min-height:calc(100vh - 34px)}.brand{display:flex;align-items:center;gap:9px;font-size:9px;letter-spacing:2px;color:var(--muted)}.brandmark{font-size:24px}h1{font-size:40px;letter-spacing:3px;margin:17px 0 6px;font-weight:600}.tagline{margin:0 0 29px;color:var(--muted);font-size:15px}section{margin:23px 0}label{display:block;font-size:12px;font-weight:600;margin-bottom:10px}.segmented{display:flex;border-radius:10px;padding:3px;background:#345e6710}.segmented button{flex:1;border:0;background:transparent;padding:8px}.segmented .selected{background:#ffffffe6;box-shadow:0 2px 6px #284d5412}.hint{font-size:11px;line-height:1.7;color:var(--muted);margin:9px 0}.styles{display:grid;gap:5px}.styles button{display:flex;align-items:center;text-align:left;padding:10px;gap:10px;border-color:transparent;background:transparent}.styles button.selected{border-color:#48867f35;background:#73b8ae1a}.styles small{display:block;font-size:10px;color:var(--muted);margin-top:3px}.styles em{margin-left:auto;font-style:normal}.swatch{width:29px;height:32px;border-radius:8px;border:1px solid #ffffff88;box-shadow:inset 0 1px 5px #ffffff80}.native{background:linear-gradient(140deg,#fff,#acd3cf)}.liquid{background:linear-gradient(140deg,#f7ffff,#8ed8d855,#fff)}.dark{background:linear-gradient(140deg,#35565e,#8a78a8)}select{width:100%;border:1px solid var(--line);border-radius:11px;padding:10px;background:var(--control);font-size:12px}.wide{width:100%;padding:12px}.wide span{float:right}#preview{margin-top:12px;font-size:12px}.desktopNote{position:absolute;left:36vw;bottom:11vh;color:#e3f3efb3}.desktopNote span{font-size:9px;letter-spacing:3px}.desktopNote p{font-size:26px;line-height:1.7;font-weight:300;letter-spacing:4px}.panel{position:absolute;top:54px;right:8vw;width:382px;border-radius:24px;padding:20px;color:var(--ink);transition:background .3s,box-shadow .3s}.panel:before{content:"";position:absolute;top:-8px;right:75px;width:15px;height:15px;transform:rotate(45deg);background:var(--surface);border-left:1px solid var(--line);border-top:1px solid var(--line)}.panel.floating{top:125px;right:13vw;box-shadow:0 38px 90px #15343955}.panel.floating:before{display:none}.panel.floating #handle{cursor:grab;touch-action:none}.panel>header{display:flex;justify-content:space-between;align-items:center;padding:2px 3px 18px}h2{margin:0;font-size:22px;font-weight:600}h2 span{font-size:9px;letter-spacing:3px;vertical-align:middle;margin-left:8px;font-weight:500;color:var(--muted)}#count{margin:5px 0 0;font-size:11px;color:var(--muted)}.headerActions{display:flex;gap:5px}.icon{display:grid;place-items:center;width:30px;height:30px;padding:0;border-radius:50%;font-size:21px}.timers{max-height:calc(100vh - 236px);overflow:auto;scrollbar-width:thin;scrollbar-color:#769d9666 transparent}.timer{position:relative;border:1px solid var(--line);background:var(--card);border-radius:18px;padding:18px;margin-bottom:10px;--tone:#329f93}.timer:nth-child(even){--tone:#9380c6}.timerHead{display:flex;align-items:center;gap:9px}.timerHead h3{font-size:15px;margin:0;max-width:165px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.status{font-size:10px;color:var(--muted);white-space:nowrap}.status:before,.dot{content:"";display:inline-block;width:5px;height:5px;border-radius:50%;background:var(--tone,var(--accent));margin-right:5px}.digits{font-size:60px;font-weight:300;letter-spacing:-2px;font-variant-numeric:tabular-nums;line-height:1.2;margin:17px 0 13px}.progress{height:4px;background:#7b9b991f;border-radius:4px;overflow:hidden}.progress i{display:block;height:100%;background:var(--tone);border-radius:4px}.meta{display:flex;justify-content:space-between;font-size:10px;margin:10px 0 19px;color:var(--muted)}.actions{display:flex;align-items:center;gap:8px}.actions button{font-size:11px;padding:8px 10px;border-radius:20px}.actions .play{background:color-mix(in srgb,var(--tone) 18%,transparent);color:var(--tone);width:37px;height:37px;padding:9px;border:0;margin-right:auto}.play svg{width:16px;height:16px;display:block;margin:auto}.actions .more{font-size:17px;width:30px;padding:4px}.menu{position:absolute;bottom:58px;right:14px;background:#f0f8f6;box-shadow:0 12px 30px #163c4330;border:1px solid white;border-radius:12px;padding:5px;z-index:5;min-width:130px;color:#203637}.menu button{display:block;width:100%;text-align:left;background:none;border:0;border-radius:7px;font-size:12px;padding:9px}.menu button:hover{background:#246e6514}.menu .danger{color:#b65c53}.add{font-size:12px;margin-top:3px}.panelFoot{text-align:center;font-size:9px;color:var(--muted);padding-top:15px}.panelFoot .dot{width:4px;height:4px}#reopen{position:absolute;top:70px;right:8vw;border-radius:15px}.primary{background:#297f74;color:white;border-color:#ffffff33}.primary:hover{background:#236d64}dialog{width:min(420px,calc(100vw - 32px));border-radius:23px;padding:26px;color:var(--ink)}dialog::backdrop{background:#14343735;backdrop-filter:blur(8px)}.dialogHead{display:flex;align-items:center;justify-content:space-between;margin-bottom:25px}.dialogHead h2{font-size:19px}input{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px;background:var(--control);margin-bottom:20px}label span{font-weight:400;color:var(--muted)}.duration{position:relative}.duration input{font-size:32px;font-variant-numeric:tabular-nums;padding-right:65px;margin-bottom:12px}.duration>span{position:absolute;right:30px;top:25px;font-size:12px;color:var(--muted)}.presets{display:flex;gap:6px}.presets button{flex:1;font-size:11px;padding:8px 2px}form>.hint{margin:18px 0}.alertShade{position:fixed;inset:0;z-index:40;display:grid;place-items:center;background:#13333235;backdrop-filter:blur(8px)}.alertShade.strong{background:#102e39cf;backdrop-filter:blur(25px);color:#ecfaf5}.alertCard{text-align:center;padding:36px;width:min(420px,calc(100vw - 32px));border-radius:25px}.alertCard h2{font-size:29px;margin:12px 0}.alertCard p{color:var(--muted);line-height:1.8}.alertCard .orb{font-size:45px;color:#57a896}.alertCard .alertActions{display:flex;gap:10px;margin-top:25px}.alertActions button{flex:1}.alertLabel{font-size:10px;letter-spacing:2px;color:var(--muted)}.strong .alertCard{width:min(600px,calc(100vw - 32px));background:none;box-shadow:none;border:0}.strong .alertCard h2{font-size:48px;font-weight:400}.strong .alertCard p,.strong .alertLabel{color:#c2d7d8}.strong .orb{font-size:80px;animation:breathe 3s ease-in-out infinite}.toast{position:fixed;right:25px;top:49px;z-index:50;width:340px;max-width:calc(100vw - 30px);border-radius:19px;padding:20px}.toast h3{margin:0 0 8px;font-size:14px}.toast p{font-size:12px;color:var(--muted)}.toast .alertActions{display:flex;gap:8px}.toast button{font-size:11px}.pulse{animation:breathe 1s ease-in-out infinite}@keyframes breathe{50%{opacity:.5;box-shadow:0 0 22px #91e2cb55}}@media(min-width:1500px){.panel{right:10vw;width:404px;top:64px}.digits{font-size:68px}.timer{padding:22px}}@media(max-width:900px){.desktopNote{display:none}.panel{right:25px;width:355px}.menuleft span{display:none}.systemicons{display:none}}@media(max-width:760px){.menubar{padding:0 12px}.menuright{gap:10px}.menuleft{gap:8px}#clock{font-size:10px}.panel,.panel.floating{position:relative;top:auto!important;left:auto!important;right:auto!important;margin:20px 16px 35px;width:calc(100% - 32px)}.panel:before{display:none}.timers{max-height:530px}.styles{grid-template-columns:repeat(3,1fr)}.styles button{padding:8px 4px;display:block;text-align:center}.styles small,.styles em{display:none}.styles span{font-size:10px}.swatch{display:block;margin:0 auto 6px}#reopen{position:relative;top:auto;right:auto;margin:10px 16px 30px}.strong .alertCard h2{font-size:34px}}@media(prefers-reduced-motion:reduce){*,*:before{animation:none!important;transition:none!important}}
+.timer{margin:0 0 10px}.strong .alertCard{backdrop-filter:none;-webkit-backdrop-filter:none}.panel.floating .timers{max-height:calc(100vh - 330px)}@media(min-width:761px) and (max-height:800px){.styles button{padding:8px}.panel.floating{top:70px}.panel.floating .timers{max-height:calc(100vh - 260px)}}
+@media(min-width:761px){.panel{max-height:calc(100vh - 70px);display:flex;flex-direction:column}.panel.floating{max-height:calc(100vh - 145px)}.timers{min-height:0;flex:1;overflow:auto}.panel>header,.panel>.add,.panelFoot{flex-shrink:0}}@media(min-width:761px) and (max-height:800px){.panel.floating{max-height:calc(100vh - 90px)}}.versionLinks{display:flex;justify-content:space-between;align-items:center;gap:8px;border-bottom:1px solid #63877c22;padding-bottom:15px}.versionLinks a{font-size:10px;color:var(--muted);text-decoration:none}.versionLinks a:hover{text-decoration:underline}.versionLinks button{font-size:10px;padding:6px 8px;border-radius:7px}.variants.segmented button{font-size:11px;padding:8px 6px}.paletteOptions{display:grid;gap:5px}.paletteOptions button{display:flex;align-items:center;justify-content:space-between;text-align:left;background:transparent;border:1px solid transparent;border-radius:11px;padding:9px 10px;gap:12px;font-size:11px}.paletteOptions button.selected{background:#ffffff77;border-color:#528c7e44;box-shadow:0 2px 6px #243d3d08}.paletteOptions small{display:block;font-size:9px;color:var(--muted);margin-top:4px}.colorDots{width:12px;height:12px;border-radius:50%;background:var(--c1);box-shadow:17px 0 0 var(--c2),34px 0 0 var(--c3);margin-right:35px;flex-shrink:0}.paletteOptions.inactive{opacity:.45}.paletteOptions button:disabled{cursor:not-allowed}
+body[data-size="two"] .panel{width:322px;padding:13px;border-radius:20px}body[data-size="two"] .timer{padding:12px;border-radius:13px;margin-bottom:8px}body[data-size="two"] .digits{font-size:38px;margin:8px 0;letter-spacing:-1px}body[data-size="two"] .timerHead{gap:6px}body[data-size="two"] .timerHead h3{font-size:13px;max-width:125px}body[data-size="two"] .status{font-size:9px}body[data-size="two"] .meta{margin:7px 0 9px;font-size:9px}body[data-size="two"] .actions{gap:6px}body[data-size="two"] .actions button{font-size:10px;padding:7px 8px;min-height:30px}body[data-size="two"] .actions .play{width:32px;height:32px;padding:8px}body[data-size="two"] .actions .more{font-size:16px;width:30px;padding:4px}body[data-size="two"] .panel>header{padding:2px 3px 12px}body[data-size="two"] .panel h2{font-size:19px}body[data-size="two"] .panelFoot{font-size:8px;padding-top:11px}body[data-size="two"] .add{padding:10px}
+body:not([data-style="dark"]):not([data-palette="original"]) .timer{background:color-mix(in srgb,var(--wash) 76%,transparent);border-color:color-mix(in srgb,var(--tone) 17%,white);box-shadow:inset 0 1px 0 #ffffffc9,0 3px 9px #21393907;color:var(--color-ink)}body:not([data-style="dark"]):not([data-palette="original"]) .timer .digits{color:var(--color-ink)}body:not([data-style="dark"]):not([data-palette="original"]) .timer .status{color:var(--secondary)}body:not([data-style="dark"]):not([data-palette="original"]) .timer .status:before{background:var(--secondary)}body:not([data-style="dark"]):not([data-palette="original"]) .timer .meta{color:color-mix(in srgb,var(--color-ink) 78%,#667879)}body:not([data-style="dark"]):not([data-palette="original"]) .timer .progress{background:color-mix(in srgb,var(--tone) 13%,transparent)}body:not([data-style="dark"]):not([data-palette="original"]) .timer .actions button{color:var(--color-ink);border-color:color-mix(in srgb,var(--tone) 14%,white);background:#ffffff85}body:not([data-style="dark"]):not([data-palette="original"]) .timer .actions .play{background:var(--tone);color:white;box-shadow:0 3px 8px color-mix(in srgb,var(--tone) 20%,transparent)}body:not([data-style="dark"]):not([data-palette="original"]) .timer .actions [data-action="plus"]{background:var(--companion);color:var(--secondary)}
+@media(max-width:760px){.panel{position:sticky!important;bottom:14px;margin-left:auto!important;margin-right:16px!important;z-index:2;max-height:65vh;display:flex;flex-direction:column}.panel .timers{flex:1;min-height:0;max-height:45vh}.panel>header,.panel>.add,.panelFoot{flex-shrink:0}body[data-size="two"] .panel{max-width:calc(100% - 32px)}.paletteOptions small{font-size:10px}}
+.menubar{position:sticky;top:0;z-index:25}@media(min-width:761px){.desktopNote{pointer-events:none}}
+@media(max-width:699px){.panel,.panel.floating{position:relative!important;bottom:auto;max-height:none;z-index:auto}.panel .timers{max-height:530px}}
+@media(min-width:700px) and (max-width:760px){.panel,.panel.floating{position:absolute!important;top:54px!important;left:auto!important;right:16px!important;bottom:auto;margin:0!important;width:355px;max-height:calc(100vh - 70px)}body[data-size="two"] .panel{width:322px}.panel .timers{max-height:calc(100vh - 236px)}}
+@media(max-width:1100px){.desktopNote{display:none}}
+body:not([data-palette="original"]) .timer{background:color-mix(in srgb,var(--wash) 76%,transparent);border-color:color-mix(in srgb,var(--tone) 17%,white);box-shadow:inset 0 1px 0 #ffffffc9,0 3px 9px #21393907;color:var(--color-ink)}body:not([data-palette="original"]) .timer .digits{color:var(--color-ink)}body:not([data-palette="original"]) .timer .status{color:var(--secondary)}body:not([data-palette="original"]) .timer .status:before{background:var(--secondary)}body:not([data-palette="original"]) .timer .meta{color:color-mix(in srgb,var(--color-ink) 78%,#667879)}body:not([data-palette="original"]) .timer .progress{background:color-mix(in srgb,var(--tone) 13%,transparent)}body:not([data-palette="original"]) .timer .actions button{color:var(--color-ink);border-color:color-mix(in srgb,var(--tone) 14%,white);background:#ffffff85}body:not([data-palette="original"]) .timer .actions .play{background:var(--tone);color:white;box-shadow:0 3px 8px color-mix(in srgb,var(--tone) 20%,transparent)}body:not([data-palette="original"]) .timer .actions [data-action="plus"]{background:var(--companion);color:var(--secondary)}
+.versionLinks{flex-wrap:wrap}.versionLinks button{margin-left:auto}[data-pref="tray"]{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}.layoutOptions{display:grid;grid-template-columns:1fr 1fr;gap:6px}.layoutOptions button{text-align:left;padding:10px 8px;background:transparent;border-color:#6b918327;font-size:10px}.layoutOptions b{font-size:10px;font-weight:500}.layoutOptions small{display:block;font-size:9px;color:var(--muted);margin-top:5px;line-height:1.5}.layoutOptions .selected{background:#ffffff8c;border-color:#55968275}
+body:is([data-tray="three"],[data-tray="four"]) #tray{min-width:72px;padding:1px 9px 7px;background:transparent;font-size:14px;font-weight:600;line-height:22px;letter-spacing:.3px}body[data-tray="four"] #tray{font-size:13px;min-width:68px}body:is([data-tray="three"],[data-tray="four"]) .traytrack{left:9px;right:9px;height:3px;bottom:2px;border-radius:3px;overflow:hidden;background:#244b4c29}body:is([data-tray="three"],[data-tray="four"]) .traytrack i{border-radius:3px;background:#226f66}
+body[data-layout]:not([data-layout="original"]){--layout-time:42px;--layout-pad:13px;--layout-gap:9px}body[data-size="two"]:not([data-layout="original"]){--layout-time:32px;--layout-pad:10px;--layout-gap:7px}
+body[data-layout]:not([data-layout="original"]) .timer{padding:var(--layout-pad)}body[data-layout]:not([data-layout="original"]) .digits{font-size:var(--layout-time);line-height:1.1;letter-spacing:-1px;margin:0}body[data-layout]:not([data-layout="original"]) .meta{margin:0;line-height:1.5}body[data-layout]:not([data-layout="original"]) .timerHead h3{min-width:0}body[data-layout]:not([data-layout="original"]) .menu{bottom:48px}
+body[data-palette="apple2"] .timer[data-color="0"]{--tone:#5856d6;--secondary:#007f9d;--wash:#eeedff;--color-ink:#373883;--companion:#dff5ff}
+body[data-palette="apple2"] .timer[data-color="1"]{--tone:#ce325f;--secondary:#7846b6;--wash:#ffeaf0;--color-ink:#8b2144;--companion:#f3e9ff}
+body[data-palette="apple2"] .timer[data-color="2"]{--tone:#007d9c;--secondary:#346ba5;--wash:#e3f6ff;--color-ink:#21586e;--companion:#e4edff}
+body[data-palette="apple2"] .timer[data-color="3"]{--tone:#7841b3;--secondary:#bd4270;--wash:#f5eaff;--color-ink:#552681;--companion:#ffe5ed}
+body[data-palette="google2"] .timer[data-color="0"]{--tone:#6750a4;--secondary:#796227;--wash:#efe6ff;--color-ink:#49316e;--companion:#f5e7c2}
+body[data-palette="google2"] .timer[data-color="1"]{--tone:#a44436;--secondary:#486836;--wash:#fce9e3;--color-ink:#77372a;--companion:#e3edcf}
+body[data-palette="google2"] .timer[data-color="2"]{--tone:#157565;--secondary:#7658a5;--wash:#dff3eb;--color-ink:#175448;--companion:#ece5f7}
+body[data-palette="google2"] .timer[data-color="3"]{--tone:#87651f;--secondary:#416a93;--wash:#fcf0d3;--color-ink:#5e481d;--companion:#e4edf8}
+body:is([data-palette="volt"],[data-palette="signal"]) .timer{border-left:3px solid var(--tone);background:linear-gradient(120deg,color-mix(in srgb,var(--wash) 90%,transparent),color-mix(in srgb,var(--companion) 65%,transparent))}body:is([data-palette="volt"],[data-palette="signal"]) .timer .progress i{background:var(--tone)}body[data-palette="apple2"] .timer .progress i{background:var(--tone)}body[data-palette="google2"] .timer .progress i{background:linear-gradient(90deg,var(--tone),var(--secondary))}body[data-sync="after"] .timer .progress{transition:none}
+body[data-surfaces="after"] .toast,body[data-surfaces="after"] .alertCard{color:var(--follow-color-ink);background:color-mix(in srgb,var(--follow-wash) 90%,transparent);border-color:color-mix(in srgb,var(--follow-tone) 32%,transparent)}body[data-surfaces="after"] #alerts .primary{background:var(--follow-tone);color:white}body[data-surfaces="after"] #alerts .orb,body[data-surfaces="after"] #alerts .alertLabel{color:var(--follow-tone)}body[data-surfaces="after"] #alerts p{color:var(--follow-color-ink);opacity:.8}body[data-surfaces="after"] #alerts [data-alert="snooze"]{background:var(--follow-companion);color:var(--follow-color-ink);border-color:color-mix(in srgb,var(--follow-tone) 25%,transparent)}body[data-surfaces="after"] .alertShade.strong{background:color-mix(in srgb,var(--follow-tone) 23%,#0c1723);color:var(--follow-color-ink)}body[data-surfaces="after"] .strong .alertCard{box-shadow:0 24px 100px #08151d40}
+body[data-layout] .newCard{--new-ink:var(--color-ink,var(--ink));--ring-surface:var(--wash,#dfebea);--new-time:48px;--new-pad:16px}body[data-size="two"] .newCard{--new-time:36px;--new-pad:11px}body[data-layout] :where(.newCard) .digits{font-size:var(--new-time);margin:0;font-weight:400;line-height:1.1;letter-spacing:-1.5px}body[data-layout] .newCard{padding:var(--new-pad)}body[data-layout] :where(.newCard) .actions{display:flex;gap:8px;align-items:center}body[data-layout] :where(.newCard) .actions .play{display:flex;align-items:center;justify-content:center;gap:7px;margin:0;flex:1;border-radius:10px;width:auto;height:34px;font-size:11px}body[data-layout] :where(.newCard) .play svg{margin:0;width:14px;height:14px;flex-shrink:0}body[data-layout] :where(.newCard) .restart{display:flex;align-items:center;justify-content:center;gap:5px;font-size:10px;height:34px;padding:7px 9px}body[data-layout] :where(.newCard) .restart svg{width:16px;height:16px;flex-shrink:0}body[data-layout] :where(.newCard) .more{flex-shrink:0;height:30px}body[data-layout] :where(.newCard) .meta{font-size:10px;line-height:1.5;margin:0}body[data-layout] :where(.newCard) .timerHead h3{max-width:100%;font-size:14px}body[data-layout] :where(.newCard) .menu{z-index:6;bottom:48px}body[data-layout] :where(.newCard) .status{font-size:9px}
+
+body[data-surfaces="after"] #alerts :focus-visible{outline-color:var(--follow-tone)}.swatch.pearl{background:linear-gradient(140deg,#fffefa,#dfd7c4)}.swatch.crystal{background:linear-gradient(135deg,#fff,#a6e1ee77,#c1b3ed)}
+body[data-expanded="true"] .expandedCard .actions{display:flex!important;grid-area:actions;gap:5px;flex-wrap:nowrap;align-items:center;margin-top:10px}
+body[data-expanded="true"] .expandedCard .actions button{display:flex!important;align-items:center;justify-content:center;gap:3px;flex:1!important;min-width:0!important;width:auto!important;height:32px!important;padding:5px 4px!important;margin:0!important;font-size:10px!important;border-radius:9px}
+body[data-expanded="true"] .expandedCard .actions button span{display:inline!important;white-space:nowrap}body[data-expanded="true"] .expandedCard .actions .play svg{width:12px;height:12px;margin:0}body[data-expanded="true"] .expandedCard .actions .danger{color:#ac454d!important;background:transparent!important}body[data-expanded="true"] .expandedCard [data-action="pin"][aria-pressed="true"]{box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--tone) 40%,transparent);color:var(--tone)}
+body[data-expanded="true"][data-layout="horizon"] .expandedCard{display:grid;grid-template-columns:1fr;grid-template-areas:"head" "time" "progress" "meta" "actions";gap:10px;border-radius:16px;padding:16px 16px 12px;overflow:hidden}body[data-layout="horizon"] .timerHead{grid-area:head;justify-content:space-between}body[data-layout="horizon"] .digits{grid-area:time;text-align:right;font-size:54px;font-weight:300;letter-spacing:-2px}body[data-layout="horizon"] .progress{grid-area:progress;height:18px;border-radius:3px;background:repeating-linear-gradient(90deg,#7b9b9922 0 1px,transparent 1px 10px)}body[data-layout="horizon"] .progress i{border-radius:2px;mask-image:repeating-linear-gradient(90deg,#000 0 7px,transparent 7px 10px)}body[data-layout="horizon"] .meta{grid-area:meta}body[data-expanded="true"][data-layout="horizon"] .expandedCard .actions{border-top:1px solid color-mix(in srgb,var(--tone) 20%,transparent);padding-top:10px}body[data-layout="horizon"][data-size="two"] .digits{font-size:44px}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .timer{background:linear-gradient(125deg,color-mix(in srgb,var(--wash) 80%,transparent),color-mix(in srgb,var(--companion) 65%,transparent));border-color:color-mix(in srgb,var(--tone) 22%,var(--line));color:var(--color-ink)}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .timer .digits{color:var(--color-ink)}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .timer .progress i{background:linear-gradient(90deg,var(--tone),var(--secondary))}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .timer .timerHead{padding-right:16px}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .timer .colorEdit{position:absolute;right:7px;top:7px;width:18px;height:18px;padding:4px;border:0;background:transparent;z-index:3;border-radius:50%}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .colorEdit:after{content:"";display:block;width:10px;height:10px;background:var(--tone);border-radius:50%;box-shadow:0 0 0 2px #ffffff66}.colorGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}.colorGrid button{padding:12px 3px;font-size:10px}.colorGrid i{display:block;background:var(--chip);width:30px;height:30px;border-radius:50%;margin:0 auto 8px}.colorGrid [aria-pressed="true"]{outline:2px solid var(--accent)}
+.eightDots{display:none}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .paletteOptions .colorDots{display:none}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .eightDots{display:grid;grid-template-columns:repeat(4,8px);gap:4px;flex-shrink:0;margin-left:auto}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .eightDots i{width:8px;height:8px;border-radius:50%}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]):is([data-layout="ribbon"],[data-layout="split"],[data-layout="ticket"]) .timer .digits{padding-right:12px}
+body:is([data-group="3"],[data-group="4"])[data-layout] .timer.optCard{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"head tools" "time time" "progress progress" "meta meta" "actions actions";gap:12px;padding:16px;align-items:center}
+body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .timerHead{grid-area:head;display:flex;flex-direction:column;align-items:flex-start;gap:5px;min-width:0;padding:0}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard h3{max-width:100%;font-size:13px}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .digits{grid-area:time;margin:0;padding:0;font-size:48px;line-height:1.1;letter-spacing:-2px}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .progress{grid-area:progress}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .meta{grid-area:meta;margin:0;font-size:9px;gap:8px;display:flex;flex-wrap:wrap;align-items:center}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .actions{grid-area:actions;display:flex;align-items:center;gap:8px;margin:0;padding:0;border:0}
+body:is([data-group="3"],[data-group="4"])[data-layout] .optCard button{border:1px solid color-mix(in srgb,var(--tone) 20%,transparent);color:var(--tone);background:color-mix(in srgb,var(--tone) 8%,transparent)}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .actions button{height:34px;min-width:32px;width:auto;display:flex;align-items:center;justify-content:center;gap:6px;margin:0;padding:6px 12px;font-size:11px;border-radius:12px;flex:0 0 auto}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard button svg{width:15px;height:15px;margin:0;flex-shrink:0}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .actions .play{background:var(--tone)!important;color:white!important;box-shadow:0 4px 10px color-mix(in srgb,var(--tone) 20%,transparent);border-color:transparent}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .actions span{display:inline}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .cardTools{grid-area:tools;display:flex;gap:4px;align-self:start}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .cardTools button{width:28px;height:28px;padding:6px;border-radius:50%;display:grid;place-items:center;background:transparent;border-color:transparent;color:var(--muted)}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .cardTools [aria-pressed="true"]{background:color-mix(in srgb,var(--tone) 14%,transparent);color:var(--tone)}body:is([data-group="3"],[data-group="4"])[data-layout] .optCard [data-action="delete"]:hover{color:#b73549;background:#b7354912}
+body:is([data-group="3"],[data-group="4"])[data-layout="horizon"] .timer.optCard{grid-template-areas:"head tools" "time time" "progress progress" "meta meta" "actions actions"}body:is([data-group="3"],[data-group="4"])[data-layout="horizon"] .optCard .actions{justify-self:end;gap:0;border-radius:20px;background:color-mix(in srgb,var(--tone) 10%,transparent);padding:3px}body:is([data-group="3"],[data-group="4"])[data-layout="horizon"] .optCard .actions .play{border-radius:18px;padding-inline:20px}body:is([data-group="3"],[data-group="4"])[data-layout="horizon"] .optCard .actions .restart{border:0;background:transparent;padding-inline:12px}
+body:is([data-group="3"],[data-group="4"])[data-size="two"] .optCard{padding:12px!important}body:is([data-group="3"],[data-group="4"])[data-size="two"] .optCard .digits{font-size:34px}
+
+body:is([data-group="3"],[data-group="4"])[data-layout] .optCard .meta{flex-direction:row;text-align:left}
+[data-pref="colorPosition"]{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .groupedColor .colorTools{display:flex;align-items:center;justify-content:flex-end;gap:4px;grid-column:1/-1;margin-top:8px}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .groupedColor :is(.colorTools,.cardTools) button{display:grid!important;place-items:center;position:static!important;width:28px!important;height:28px!important;min-width:28px;padding:6px!important;border:0!important;border-radius:50%;background:transparent;color:var(--muted);box-shadow:none!important;flex:0 0 28px!important}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .groupedColor :is(.colorTools,.cardTools) svg{width:16px;height:16px;margin:0}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .groupedColor .colorEdit:after{box-shadow:none!important;width:11px;height:11px}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .groupedColor :is(.colorTools,.cardTools) button:hover{background:color-mix(in srgb,var(--tone) 10%,transparent)!important;box-shadow:none!important;filter:none!important;transform:none!important}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .groupedColor :is(.colorTools,.cardTools) [data-action="pin"][aria-pressed="true"]{color:var(--tone);background:color-mix(in srgb,var(--tone) 10%,transparent)}
+body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .groupedColor :is(.colorTools,.cardTools) [data-action="delete"]{margin-left:4px;color:var(--muted)}body:is([data-colors="before"],[data-colors="five"],[data-colors="after"]) .groupedColor :is(.colorTools,.cardTools) [data-action="delete"]:hover{color:#b73549!important;background:#b7354912!important}
+#colorDialog.nearby{position:fixed;margin:0;width:216px;padding:14px;border-radius:16px;z-index:100;box-shadow:0 12px 35px #17334135,inset 0 1px 0 #fff8}#colorDialog.nearby .dialogHead{margin-bottom:10px}#colorDialog.nearby h2{font-size:12px}#colorDialog.nearby .icon{width:22px;height:22px;font-size:16px}#colorDialog.nearby>.hint{display:none}#colorDialog.nearby .colorGrid{gap:6px}#colorDialog.nearby .colorGrid button{height:34px;padding:5px;border:0;background:transparent;border-radius:8px}#colorDialog.nearby .colorGrid i{width:22px;height:22px;margin:auto}#colorDialog.nearby .colorGrid span{display:none}#colorDialog.nearby .colorGrid [aria-pressed="true"]{outline:1px solid var(--muted);outline-offset:0}body[data-colors="five"] .eightDots{grid-template-columns:repeat(5,8px)}body[data-group="4"][data-layout="horizon"] .optCard .digits{text-align:left}
+body[data-panel-polish="after"] #close{display:flex;align-items:center;justify-content:center;padding:0;line-height:1;flex-shrink:0}body[data-panel-polish="after"] #close svg{display:block;width:18px;height:18px;flex:none}
+body[data-panel-polish="after"] .panel>.add{margin-top:14px;flex-shrink:0}body[data-panel-polish="after"] .panel .timers{max-height:calc(100vh - 254px)}
+body[data-panel-polish="after"] .panel:not(.floating):before{width:20px;height:10px;top:-10px;right:72px;transform:none;border:0;border-radius:0;clip-path:polygon(50% 0,100% 100%,0 100%);background:var(--surface);box-shadow:none;backdrop-filter:blur(36px)}
+@media(max-width:760px){body[data-panel-polish="after"] .panel .timers{max-height:42vh}}
+#settingsOpen svg{width:19px;height:19px;display:block}#settingsOpen{display:flex;align-items:center;justify-content:center}
+#settingsPage{margin:0;max-height:calc(100vh - 220px);overflow:auto;padding:0 2px 4px}#settingsPage .settingsTitle{display:flex;align-items:center;gap:18px;padding-bottom:6px}#settingsPage h3{font-size:14px;margin:0}#settingsBack{font-size:12px;padding:6px 10px;border:0;background:transparent}#settingsPage section{margin:20px 0}#settingsPage .paletteOptions button{min-height:45px}#settingsPage label{font-size:12px}#settingsPage .eightDots{display:grid;grid-template-columns:repeat(5,8px)}#settingsPage select{font-size:11px}
+@media(max-width:760px){.panel,.panel.floating{position:relative!important;top:auto!important;right:auto!important;bottom:auto!important;margin:24px auto!important;max-height:85vh}.panel .timers{max-height:60vh}}
+
+
+/* v1.7 评审辅助区；产品样式沿用 v1.6。 */
+.prototypeReview{position:fixed;left:24px;top:54px;width:280px;max-width:calc(100vw - 48px);max-height:calc(100vh - 78px);overflow-y:auto;padding:24px;border-radius:24px;}
+.prototypeReview h2{font-size:20px;letter-spacing:1px;}
+</style>
+<style>
+.desktopNote{display:none}.draft{--draft-tone:#25877f;color:var(--ink);margin:0;min-width:0}.draft header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}.draft header h3{margin:0;font-size:14px}.draft .back{padding:5px 0;background:transparent;border:0;font-size:12px}.draft label{font-size:10px;color:var(--muted);margin:0 0 7px}.draft input{margin:0;background:#ffffff50}.draft input:focus{outline:2px solid color-mix(in srgb,var(--draft-tone) 50%,white);outline-offset:2px}.draft .draft-name{font-size:14px;padding:12px;border-radius:12px;color:var(--draft-tone)}.draft .timebox{padding:18px 0 12px}.draft .time-input{display:flex;align-items:baseline;gap:10px;border-bottom:1px solid color-mix(in srgb,var(--draft-tone) 24%,transparent)}.draft .time-input input{border:0;background:none;font-size:54px;letter-spacing:-2px;font-weight:300;color:var(--draft-tone);padding:0 0 10px;width:100%;min-width:0;font-variant-numeric:tabular-nums}.draft .time-input span{white-space:nowrap;font-size:12px;color:var(--muted)}.draft .quick{display:flex;gap:5px;margin:12px 0 22px}.draft .quick button{flex:1;padding:8px 0;font-size:11px;border-radius:9px;background:#ffffff38}.draft .quick button[aria-pressed=true]{background:color-mix(in srgb,var(--draft-tone) 14%,transparent);border-color:color-mix(in srgb,var(--draft-tone) 45%,white);color:var(--draft-tone)}.draft .color-row{display:flex;align-items:center;justify-content:space-between;margin:14px 0 20px}.draft .color-row label{margin:0}.draft .dots{display:flex;gap:8px}.draft .dots button{width:23px;height:23px;padding:4px;border:1px solid transparent;border-radius:50%;background:none;display:grid;place-items:center}.draft .dots i{width:13px;height:13px;border-radius:50%;background:var(--dot)}.draft .dots button[aria-pressed=true]{border-color:var(--draft-tone);background:#ffffff70}.draft .reminder-line{font-size:10px;color:var(--muted);border-top:1px solid #456e681b;padding:12px 0;line-height:1.6}.draft .submit{width:100%;background:var(--draft-tone);color:white;border-color:#ffffff50;padding:13px;font-size:12px}.draft .keyboard{font-size:9px;text-align:center;color:var(--muted);margin:10px 0 0}.draft .error{color:#ac354b;font-size:11px;min-height:0}.draft.inline{padding:15px;border:1px solid color-mix(in srgb,var(--draft-tone) 30%,white);border-radius:16px;background:linear-gradient(135deg,#ffffff80,color-mix(in srgb,var(--draft-tone) 12%,#ffffff70));margin:10px 0}.draft.inline header{margin-bottom:13px}.draft.inline .timebox{padding-top:14px}.draft.inline .time-input input{font-size:40px}.draft.inline .quick{margin-bottom:12px}.draft.inline .color-row{margin:10px 0}.draft.inline .draft-name{font-size:13px}.draft.inline .keyboard{display:none}button{cursor:pointer}.draft.inline .draft-actions{display:flex;gap:8px;margin-top:14px;align-items:stretch}.draft.inline .draft-actions .back{background:#ffffff80;border:1px solid #5c78753b;color:#455d5c;border-radius:11px;padding:11px 12px;white-space:nowrap;font-size:11px}.draft.inline .draft-actions .back:hover{background:#fff;border-color:#718d8b}.draft.inline .draft-actions .submit{flex:1;min-width:0;width:auto;border-radius:11px;font-size:11px}.draft.inline .waiting-note{font-size:10px;color:var(--muted);margin:6px 0 0;line-height:1.5}.draft.inline:not([data-b-layout=original]) header{display:block}.draft.inline:not([data-b-layout=original]) .editor-grid{display:block}.draft.inline .error:empty{display:none}
+.draft.inline[data-b-layout=outline]{padding:15px;border-radius:14px;background:#ffffff75}.draft.inline[data-b-layout=outline] header{padding-bottom:12px;border-bottom:1px solid #69858030}.draft.inline[data-b-layout=outline] .draft-name{padding:10px;font-size:12px}.draft.inline[data-b-layout=outline] .timebox{display:grid;grid-template-columns:1fr 100px;align-items:center;gap:10px;padding:14px 0 0}.draft.inline[data-b-layout=outline] .timebox>label{margin:0;font-size:10px}.draft.inline[data-b-layout=outline] .time-input{border:1px solid #ffffffb0;border-radius:9px;background:color-mix(in srgb,var(--draft-tone) 7%,#fff8);padding:7px;gap:3px}.draft.inline[data-b-layout=outline] .time-input input{font-size:26px;letter-spacing:-1px;padding:0}.draft.inline[data-b-layout=outline] .time-input span{font-size:9px}.draft.inline[data-b-layout=outline] .quick{grid-column:1/-1;margin:0 0 10px}.draft.inline[data-b-layout=outline] .color-row{border-top:1px solid #69858020;padding-top:12px;gap:4px}.draft.inline[data-b-layout=outline] .dots{gap:4px}.draft.inline[data-b-layout=outline] .reminder-line{font-size:9px}.draft.inline[data-b-layout=outline] .draft-actions{border-top:1px solid #69858020;padding-top:12px;margin-top:0}
+
+</style>
+<style>
+
+@media(max-width:380px){body[data-size="two"] .panel{width:calc(100vw - 24px)!important}.menubar{padding:0 8px}.menuright{gap:6px}.menuleft strong{display:none}}
+
+</style>
+<style>
+
+.icon-samples{display:flex;gap:16px;margin:10px 0 0}.icon-samples svg{width:18px;height:18px}.timerHead{position:relative}body[data-menu-mode=after] .timerHead{padding-left:19px!important}.timer.drag-active{opacity:.55}.timer.drop-before{box-shadow:0 -3px 0 #217e73}.timer.drop-after{box-shadow:0 3px 0 #217e73}.cardTools button:disabled{opacity:.25;cursor:not-allowed}#sortAnnouncement{font-size:11px;color:var(--muted)}
+
+</style>
+<style>
+
+html,body{height:100%;height:100dvh;overflow-y:hidden}
+.prototype-workbench{display:grid;grid-template-columns:300px 322px;gap:36px;justify-content:center;align-items:start;height:calc(100dvh - 34px);overflow-x:auto;overflow-y:hidden;padding:28px 24px 16px;min-width:0}
+.prototype-workbench main{min-height:0!important;width:322px;position:relative}
+body .prototype-workbench #panel{position:relative!important;inset:auto!important;margin:0!important;width:322px!important;max-height:calc(100dvh - 78px)!important;display:flex;flex-direction:column;min-height:0}
+body .prototype-workbench #panel[hidden]{display:none!important}
+.prototype-workbench #panel>header,.prototype-workbench #add,.prototype-workbench .panelFoot{flex-shrink:0}
+body .prototype-workbench #timers{min-height:0;overflow-y:auto;max-height:calc(100dvh - 235px)!important;overscroll-behavior:contain}
+.prototype-workbench #settingsPage{min-height:0;overflow-y:auto;max-height:calc(100dvh - 180px)}
+.prototype-workbench #reopen{position:relative;inset:auto;margin:0;width:100%}
+.variant-title{display:flex;align-items:center;gap:9px}.variant-icon{display:grid;place-items:center;width:24px;height:24px;flex:none}.variant-icon svg{width:19px;height:19px}
+body:is([data-drag-style=top],[data-drag-style=edge]) .prototype-workbench .timerHead{padding-left:0!important}
+@media(max-width:720px){.prototype-workbench{justify-content:start;gap:20px;padding-left:16px;padding-right:16px}}
+
+</style>
+<style>
+
+body[data-drag-style=name] .prototype-workbench .timerHead{padding-left:0!important;min-height:32px;align-self:stretch;cursor:grab;touch-action:none;user-select:none;-webkit-user-select:none}
+body[data-drag-style=name] .prototype-workbench .timerHead[aria-disabled=true]{cursor:default}
+body[data-drag-style=name] .prototype-workbench .timerHead:active{cursor:grabbing}
+body[data-drag-style=name] .prototype-workbench .timerHead:is(:focus,:focus-visible){outline:none}
+
+</style>
+<style>
+
+.prototype-workbench.finalized{grid-template-columns:322px;gap:0;justify-content:center}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
+@media(max-width:370px){.prototype-workbench.finalized{justify-content:start}}
+
+</style>
+<style>
+body{--review-width:328px;padding-left:var(--review-width)}
+.prototypeReview{z-index:60;left:20px;top:24px;width:288px;max-height:calc(100vh - 48px)}
+.prototypeReview h3{font-size:13px;font-weight:600;margin:0 0 12px}.reviewTabs{display:flex;flex-wrap:wrap;gap:7px}.reviewTabs button{font-size:12px;padding:9px 11px;border:1px solid #78958b55}.reviewTabs button[aria-pressed="true"]{background:#236f65;color:white;border-color:#236f65}
+#fullScene{position:fixed;inset:0 0 0 var(--review-width);background:#f6f4ee;padding:15vh 9%;color:#444b43;overflow:auto}.sceneEyebrow{font-size:11px;letter-spacing:3px;color:#82877e}#fullScene h1{font-size:clamp(25px,3vw,42px);letter-spacing:1px;margin:30px 0}#fullScene p{font-size:17px;line-height:2.5;color:#777d74}#fullScene hr{border:0;border-top:1px solid #dedfd5;margin:30px 0;max-width:500px}
+body[data-scene="full"] .menubar,body[data-scene="full"] .desktopNote{visibility:hidden}body[data-scene="full"] #reopen{position:fixed;top:auto;bottom:22px;right:24px;z-index:5;font-size:11px}body[data-scene="full"] #panel{z-index:12;top:95px}
+#focusIndicator{position:fixed;z-index:20;right:24px;top:24px;display:flex;align-items:center;gap:9px;background:#f1f8f3ed;box-shadow:0 5px 24px #18382c20;border:1px solid #ffffffcc;color:#28473f;touch-action:none;user-select:none;--indicator-tone:#328f87}
+.focusDot{width:6px;height:6px;flex-shrink:0;border-radius:50%;background:var(--indicator-tone)}.focusTime{font-variant-numeric:tabular-nums;letter-spacing:.5px}.focusName{max-width:170px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px}.focusTrack{background:#204c3918;overflow:hidden}.focusTrack i{display:block;height:100%;background:var(--indicator-tone)}
+body[data-display="block"] #focusIndicator{width:180px;padding:17px 18px 22px;border-radius:18px;flex-wrap:wrap}body[data-display="block"] .focusName{width:125px}body[data-display="block"] .focusTime{font-size:32px;width:100%;text-align:left}body[data-display="block"] .focusTrack{position:absolute;bottom:12px;left:18px;right:18px;height:3px;border-radius:3px}
+body[data-display="capsule"] #focusIndicator{border-radius:24px;padding:10px 14px;background:color-mix(in srgb,var(--indicator-tone) 20%,#ffffff);border-color:color-mix(in srgb,var(--indicator-tone) 32%,#ffffff);color:color-mix(in srgb,var(--indicator-tone) 35%,#182d27)}body[data-display="capsule"] .focusTime{font-size:15px}body[data-display="capsule"] .focusName{display:none}body[data-display="capsule"] #focusIndicator:is(:hover,:focus-visible) .focusName{display:block}body[data-display="capsule"] .focusTrack{display:none}
+body[data-display="line"] #focusIndicator{width:160px;height:24px;padding:0;border:0;border-radius:0;background:transparent;box-shadow:none}body[data-display="line"] .focusTrack{position:absolute;top:0;left:0;right:0;height:4px;border-radius:4px}body[data-display="line"] #focusIndicator>span:not(.focusTrack){display:none}body[data-display="line"] #focusIndicator:is(:hover,:focus-visible){height:auto;min-height:48px;width:auto;min-width:160px;padding:14px;background:#f1f8f3;border-radius:12px;box-shadow:0 5px 24px #18382c20}body[data-display="line"] #focusIndicator:is(:hover,:focus-visible)>span:not(.focusTrack){display:block}
+@media(max-width:850px){body{--review-width:240px}.prototypeReview{left:12px;width:216px;padding:18px}#fullScene{padding:14vh 5%}.panel{right:12px!important;width:340px!important}}
+
+/* 3A–3F: fixed comparison IDs. E references DynamicLake timer;
+ F references Session mini-player. Interpretations, not exact replicas.
+ https://www.dynamiclake.com/timer  https://stayinsession.com/
+ B: 5 seconds without interaction with the capsule; activity elsewhere does
+ not wake it. Hover entry, pointer movement, click or keyboard focus wakes it.
+ Text opacity remains unchanged. */
+.focusRing{display:none}
+body[data-display="capsule"] #focusIndicator{transition:background .45s,border-color .45s,box-shadow .45s,opacity .45s;max-width:calc(100vw - var(--review-width) - 24px)}
+body[data-display="capsule"][data-capsule="immersive"] #focusIndicator[data-idle="true"]{background:color-mix(in srgb,color-mix(in srgb,var(--indicator-tone) 20%,white) 25%,transparent);border-color:color-mix(in srgb,color-mix(in srgb,var(--indicator-tone) 32%,white) 20%,transparent);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);box-shadow:inset 0 1px 0 #ffffff40,inset 0 -1px 0 #ffffff12,0 3px 12px #18382c0a}
+body[data-display="capsule"]:is([data-capsule="ring"],[data-capsule="ring2"]) #focusIndicator{padding:7px 15px 7px 7px;background:color-mix(in srgb,var(--indicator-tone) 9%,white);border:1px solid color-mix(in srgb,var(--indicator-tone) 28%,white);gap:10px}
+body[data-display="capsule"]:is([data-capsule="ring"],[data-capsule="ring2"]) .focusDot{display:none}
+body[data-display="capsule"]:is([data-capsule="ring"],[data-capsule="ring2"]) .focusRing{display:block;position:relative;width:28px;height:28px;border-radius:50%;background:conic-gradient(var(--indicator-tone) var(--focus-angle,0deg),color-mix(in srgb,var(--indicator-tone) 14%,white) 0);flex-shrink:0}
+body[data-display="capsule"]:is([data-capsule="ring"],[data-capsule="ring2"]) .focusRing:after{content:"";position:absolute;inset:3px;border-radius:50%;background:#fafcfb}
+body[data-display="capsule"]:is([data-capsule="paper"],[data-capsule="paper2"]) #focusIndicator{border-radius:5px 16px 16px 5px;border:0;border-left:4px solid var(--indicator-tone);padding:11px 18px;background:color-mix(in srgb,var(--indicator-tone) 8%,#fffdf6);box-shadow:0 2px 3px #24362c0a,0 7px 18px #24362c10}
+body[data-display="capsule"]:is([data-capsule="paper"],[data-capsule="paper2"]) .focusDot{display:none}body[data-display="capsule"]:is([data-capsule="paper"],[data-capsule="paper2"]) .focusTime{font-family:Georgia,serif;font-size:20px;letter-spacing:1px}
+body[data-display="capsule"][data-capsule="island"] #focusIndicator{background:#151617;border:1px solid #ffffff20;color:color-mix(in srgb,var(--indicator-tone) 48%,white);padding:12px 20px;gap:13px;border-radius:26px;box-shadow:0 7px 24px #0003}
+body[data-display="capsule"][data-capsule="island"] .focusTime{font-size:17px;font-weight:600}body[data-display="capsule"][data-capsule="island"] .focusName{color:#eeeeee}
+body[data-display="capsule"][data-capsule="island"] .focusDot{width:8px;height:8px;box-shadow:0 0 9px color-mix(in srgb,var(--indicator-tone) 45%,transparent)}
+body[data-display="capsule"][data-capsule="mini"] #focusIndicator{display:grid;grid-template-columns:6px auto;gap:5px 9px;border-radius:14px;padding:12px 16px 18px;min-width:130px;background:color-mix(in srgb,var(--indicator-tone) 12%,white)}
+body[data-display="capsule"][data-capsule="mini"] .focusName{display:block;font-size:10px;max-width:150px;grid-column:2;color:#52615b}body[data-display="capsule"][data-capsule="mini"] .focusTime{grid-column:2;font-size:23px;font-weight:500;line-height:1.1}
+body[data-display="capsule"][data-capsule="mini"] .focusTrack{display:block;position:absolute;left:16px;right:16px;bottom:8px;height:3px;border-radius:3px}
+@media(prefers-reduced-motion:reduce){body[data-display="capsule"] #focusIndicator{transition:none}}
+
+/* G/H retain A while active; after 5 seconds G softens the whole capsule,
+ H removes the plate but preserves a legible readout and unchanged hit area. */
+body[data-display="capsule"][data-capsule="soft"] #focusIndicator[data-idle="true"]{opacity:.55;background:color-mix(in srgb,var(--indicator-tone) 12%,white);border-color:transparent;box-shadow:0 2px 8px #18382c08}
+body[data-display="capsule"][data-capsule="ghost"] #focusIndicator[data-idle="true"]{background:transparent;border-color:transparent;box-shadow:none;color:color-mix(in srgb,var(--indicator-tone) 30%,#182d27);text-shadow:0 1px 3px #ffffffdd,0 0 6px #ffffffaa}
+body[data-display="capsule"][data-capsule="ghost"] #focusIndicator[data-idle="true"] .focusDot{box-shadow:0 0 0 2px #ffffff66}
+
+/* I/J redesign based on Apple WWDC25/219: regular scattering vs clear
+ localized dimming, directional rim highlights, legible foreground.
+ CSS approximation: no claim of system-rendered lensing or pixel-adaptive tint.
+ https://developer.apple.com/videos/play/wwdc2025/219/ */
+body[data-display="capsule"]:is(:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]),[data-capsule="dewGlass"]) #focusIndicator{isolation:isolate;--glint-x:25%;--glint-y:15%;transition:background .65s,border-color .65s,box-shadow .65s,color .4s,backdrop-filter .65s;}
+body[data-display="capsule"]:is(:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]),[data-capsule="dewGlass"]) #focusIndicator:before,
+body[data-display="capsule"]:is(:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]),[data-capsule="dewGlass"]) #focusIndicator:after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .65s}
+body[data-display="capsule"]:is(:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]),[data-capsule="dewGlass"]) #focusIndicator>span{position:relative;z-index:2}
+body[data-display="capsule"]:is(:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]),[data-capsule="dewGlass"]) #focusIndicator[data-idle="true"]{border-color:transparent;text-shadow:none;}
+body[data-display="capsule"]:is(:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]),[data-capsule="dewGlass"]) #focusIndicator[data-idle="true"]:before,
+body[data-display="capsule"]:is(:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]),[data-capsule="dewGlass"]) #focusIndicator[data-idle="true"]:after{opacity:1}
+/* A masked, variable-brightness rim, not multiple concentric white outlines. */
+body[data-display="capsule"]:is(:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]),[data-capsule="dewGlass"]) #focusIndicator:after{padding:1px;background:conic-gradient(from 135deg at var(--glint-x) 50%,#ffffffb8, #ffffff12 18%,#ffffffa0 37%,#ffffff08 53%,#ffffffd9 76%,#ffffff14 90%,#ffffffb8);-webkit-mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);-webkit-mask-composite:xor;mask:linear-gradient(#fff 0 0) content-box,linear-gradient(#fff 0 0);mask-composite:exclude;}
+/* I Regular: scattering layer protects reading, tint remains subtle. */
+body[data-display="capsule"]:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]) #focusIndicator[data-idle="true"]{background:linear-gradient(155deg,#ffffff65,#ffffff26),color-mix(in srgb,var(--indicator-tone) 7%,#f5f5f729);backdrop-filter:blur(18px) saturate(1.45);-webkit-backdrop-filter:blur(18px) saturate(1.45);color:#232528;box-shadow:0 1px 3px #18202a12,0 6px 20px #18202a16,inset 0 .5px 0 #ffffffb0,inset 0 -.5px 0 #0000000d;}
+body[data-display="capsule"]:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]) #focusIndicator:before{background:radial-gradient(ellipse at var(--glint-x) 0%,#ffffff58,transparent 65%),linear-gradient(180deg,#ffffff12,transparent 60%,#ffffff18);}
+body[data-display="capsule"]:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"])[data-backdrop="dark"] #focusIndicator[data-idle="true"]{background:linear-gradient(155deg,#ffffff1c,#ffffff05),#24272f7a;color:#f5f5f7;box-shadow:0 2px 5px #0002,0 8px 22px #0003,inset 0 .5px 0 #ffffff50;}
+/* I text follows the current task in both active and immersed states. */
+body[data-display="capsule"]:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]) #focusIndicator,
+body[data-display="capsule"]:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]) #focusIndicator[data-idle="true"],
+body[data-display="capsule"]:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"])[data-backdrop="dark"] #focusIndicator[data-idle="true"]{color:var(--indicator-tone)}
+body[data-display="capsule"]:is([data-capsule="clearGlass"],[data-capsule="ring2"],[data-capsule="paper2"],[data-capsule="glass2"]) #focusIndicator :is(.focusTime,.focusName){font-weight:600}
+/* J Clear: preserves background detail; local darkening supports bright text. */
+body[data-display="capsule"][data-capsule="dewGlass"] #focusIndicator[data-idle="true"]{background:linear-gradient(145deg,#ffffff15,transparent 45%,#ffffff0c),#10151f45;backdrop-filter:blur(2px) saturate(1.2);-webkit-backdrop-filter:blur(2px) saturate(1.2);color:#fff;box-shadow:0 2px 4px #00000016,0 5px 16px #00000024,inset 0 .5px 0 #ffffff60;}
+body[data-display="capsule"][data-capsule="dewGlass"] #focusIndicator[data-idle="true"] .focusTime{font-weight:650;text-shadow:0 1px 3px #0005}
+body[data-display="capsule"][data-capsule="dewGlass"] #focusIndicator[data-idle="true"] .focusDot{background:color-mix(in srgb,var(--indicator-tone) 65%,white)}
+body[data-display="capsule"][data-capsule="dewGlass"] #focusIndicator:before{background:radial-gradient(ellipse at var(--glint-x) var(--glint-y),#ffffff25,transparent 58%);box-shadow:inset 1.5px 1px 2px #ffffff30,inset -1px -1.5px 2px #00000018;}
+body[data-backdrop="dark"] #fullScene{background:#171b24;color:#f5f5f7}body[data-backdrop="dark"] #fullScene p{color:#b9c0cc}body[data-backdrop="dark"] #fullScene hr{border-color:#ffffff22}
+body[data-backdrop="color"] #fullScene{background:radial-gradient(ellipse at 85% 10%,#eeaf72,transparent 42%),radial-gradient(ellipse at 35% 55%,#9097d6,transparent 50%),linear-gradient(125deg,#355977,#7fb6b1 55%,#dbbc9c);color:white}body[data-backdrop="color"] #fullScene p{color:#ffffffcc}body[data-backdrop="color"] #fullScene hr{border-color:#ffffff40}
+@media(prefers-reduced-motion:reduce){body[data-display="capsule"] #focusIndicator:before,body[data-display="capsule"] #focusIndicator:after{transition:none}}
+
+/* Always-glass derivatives keep their original shape details. */
+body[data-display="capsule"][data-capsule="paper2"] #focusIndicator[data-idle="true"]{border-left:4px solid var(--indicator-tone)}
+body[data-display="capsule"][data-capsule="ring2"] .focusRing{background:conic-gradient(var(--indicator-tone) var(--focus-elapsed-angle,0deg),color-mix(in srgb,var(--indicator-tone) 16%,transparent) 0);-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px));mask:radial-gradient(farthest-side,transparent calc(100% - 3px),#000 calc(100% - 3px))}
+body[data-display="capsule"][data-capsule="ring2"] .focusRing:after{display:none}
+
+.appearanceRow{display:flex;align-items:center;justify-content:space-between;margin:12px 0;font-size:12px}.appearanceRow button{font-size:11px;padding:6px 12px}.appearanceRow button[aria-checked="true"]{background:#328f87;color:white}.appearanceRow button:disabled{opacity:.55;cursor:default}
+body[data-style="dark"]{--surface:rgba(29,38,43,.94);--card:rgba(255,255,255,.06);--line:rgba(255,255,255,.14);--muted:#a2b7bb;--ink:#e7eff0;--control:rgba(255,255,255,.08);color:var(--ink)}
+body[data-style="dark"] #panel{color:var(--ink);background:var(--surface)}
+body[data-style="dark"] #panel .timer{background:var(--wash);border-color:#ffffff20;color:var(--color-ink);box-shadow:inset 0 1px 0 #ffffff0a}
+body[data-style="dark"] :is(.prototypeReview,dialog,.menu,.toast){background:#202c32;color:#e7eff0}
+body[data-style="dark"] #settingsPage :is(button,select){color:#e7eff0;background:#ffffff0d;border-color:#ffffff20}
+body[data-style="dark"] #settingsPage select option{background:#202c32;color:#e7eff0}
+body[data-style="dark"] #settingsPage button[aria-checked="true"]{background:#287e73}
+body[data-style="dark"] :is(button:hover,input){background-color:#ffffff15}
+body[data-style="dark"] #focusIndicator{background:#23353ce6;color:var(--indicator-tone)}
+body[data-style="dark"] #focusIndicator[data-idle="true"]{background:linear-gradient(155deg,#ffffff1c,#ffffff05),#24272f7a;color:var(--indicator-tone)}
+</style><style>
+.themeSegments,.themeCards{display:flex;gap:6px}.themeSegments{padding:4px;background:#80978e18;border-radius:12px}.themeSegments button,.themeCards button{flex:1;font-size:12px;padding:9px 5px;background:transparent;border:1px solid var(--line)}#settingsPage #themeVariantControls button[aria-pressed="true"]{border-color:#328f87;background:#328f8726;box-shadow:0 0 0 1px #328f87}.themeSample{display:block;height:50px;margin-bottom:8px;border-radius:7px;position:relative;overflow:hidden;border:1px solid #82998f40}.themeSample.light{background:#edf5f2}.themeSample.dark{background:#202c35}.themeSample.auto{background:linear-gradient(90deg,#edf5f2 50%,#202c35 50%)}.themeSample:after{content:"";position:absolute;inset:9px 7px;border:1px solid #8fa69b66;border-radius:4px;background:linear-gradient(180deg,#86a99d55 5px,transparent 5px,transparent 10px,#86a99d33 10px,#86a99d33 13px,transparent 13px)}
+</style><style>
+.themeCompact{gap:5px;max-width:240px}.themeCompact button{padding:5px 7px;font-size:11px;border-radius:9px}.themeCompact .themeSample{height:27px;margin-bottom:4px;border-radius:4px}.themeCompact .themeSample:after{inset:5px 6px;border-radius:2px}
+.themeIcons{display:flex;gap:8px}.themeIcons button{flex:1;display:flex;align-items:center;justify-content:center;gap:7px;padding:10px 7px;font-size:12px;border-radius:20px}.themeModeIcon{font-size:19px;line-height:1}.themeDropdown label{font-size:11px;color:var(--muted)}
+</style></head><body>
+<aside class="prototypeReview glass" aria-label="交互方案"><h2>留白 · 交互方案</h2>
+<section><h3>1. 倒计时展示</h3><div class="reviewTabs" aria-label="倒计时展示">
+<button data-display="tray">A 状态栏</button><button data-display="block">B 悬浮块</button><button data-display="capsule">C 边缘胶囊</button><button data-display="line">D 边缘进度条</button></div></section>
+<section><h3>2. 使用场景</h3><div class="reviewTabs" aria-label="使用场景"><button data-scene="desktop">A 桌面</button><button data-scene="full">B 全屏模拟</button></div></section>
+<section id="capsuleStyles"><h3>3. 胶囊样式</h3><div class="reviewTabs" aria-label="胶囊样式">
+<button data-capsule="ring">C 时间刻环</button><button data-capsule="paper">D 边缘书签</button><button data-capsule="clearGlass">I 标准液玻</button><button data-capsule="ring2">C2 刻环液玻</button><button data-capsule="paper2">D2 书签液玻</button><button data-capsule="glass2">I2 常驻液玻</button>
+</div></section><section><h3>4. 全屏背景</h3><div class="reviewTabs" aria-label="全屏背景"><button data-backdrop="light">A 浅色阅读</button><button data-backdrop="dark">B 深色阅读</button><button data-backdrop="color">C 彩色背景</button></div></section><section><h3>5. 设置外观</h3><div class="reviewTabs"><button data-theme-review="before">A 原设置</button><button data-theme-review="after">B 明暗与自动</button><button data-theme-review="segment">C 三项切换</button><button data-theme-review="cards">D 外观卡片</button><button data-theme-review="adaptive">E 自动与手动</button><button data-theme-review="compact">F 紧凑卡片</button><button data-theme-review="dropdown">G 下拉选择</button><button data-theme-review="icons">H 图标切换</button></div></section></aside>
+<div id="fullScene" hidden><span class="sceneEyebrow">阅读 · 全屏模拟</span><h1>把注意力，留给眼前。</h1><p>有些时刻，我们只想专注于一件事。</p><hr><p>关掉多余的窗口，让文字慢慢展开。<br>时间仍在流动，不必一直回头确认。</p><p>在一段完整的时间里，<br>阅读、思考，然后把想法写下来。</p></div>
+<button id="focusIndicator" hidden aria-label="打开当前倒计时" title="拖动调整位置，点击打开倒计时"><span class="focusDot"></span><span class="focusRing" aria-hidden="true"></span><span class="focusName"></span><span class="focusTime"></span><span class="focusTrack"><i></i></span></button>
+<div class="wallpaper" aria-hidden="true"><i></i><i></i><i></i></div>
+<header class="menubar"><div class="menuleft"><b>◉</b><strong>留白</strong><span>文件</span><span>编辑</span><span>显示</span><span>窗口</span><span>帮助</span></div><div class="menuright"><button id="tray" aria-label="打开倒计时面板"><span id="trayText"></span><span class="traytrack"><i id="trayProgress"></i></span></button><span class="systemicons">◔ &nbsp; ▰</span><time id="clock"></time></div></header>
+<main>
+<div class="desktopNote"><span>MAKE ROOM FOR YOURSELF</span><p>慢一点，<br>也能走得更远。</p></div>
+<article id="panel" class="panel glass" aria-label="倒计时面板"><header id="handle"><div><h2>留白 <span>STILL</span></h2><p id="count"></p></div><div class="headerActions"><button id="settingsOpen" class="icon" aria-label="设置" title="设置"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="m9 3-1 3-3 1 1 3-2 2 2 2-1 3 3 1 1 3h4l1-3 3-1-1-3 2-2-2-2 1-3-3-1-1-3Z"/><circle cx="11" cy="12" r="3"/></svg></button><button id="close" class="icon" aria-label="收起面板">×</button></div></header><section id="settingsPage" hidden aria-label="设置"><div class="settingsTitle"><button id="settingsBack" aria-label="返回倒计时">‹ 返回</button><h3>设置</h3></div><section id="appearanceSettings"><label>显示模式</label><div class="appearanceRow"><span>自动 · 跟随系统</span><button id="autoTheme" role="switch" aria-checked="false" aria-label="自动跟随系统外观">关闭</button></div><div class="appearanceRow"><span>黑暗模式</span><button id="darkTheme" role="switch" aria-checked="false" aria-label="黑暗模式">关闭</button></div></section><section><label>外观配色</label><p class="hint">每套五色；任务的色位保持不变。</p><div class="paletteOptions variants" data-pref="palette"><button data-value="original"><span>原样</span></button><button data-value="apple2"><span>苹果灵感 II</span></button><button data-value="google2"><span>谷歌灵感 II</span></button></div></section><section><label for="level">提醒效果预览</label><select id="level"><option value="light">轻提醒 · 菜单栏与通知</option><option value="medium">醒目提醒 · 中央卡片</option><option value="strong">强打断 · 全屏遮罩</option></select><p class="hint">仅用于预览，不改变任务提醒强度 · 无声音</p><button id="preview" class="wide">预览到时提醒 ↗</button></section><p class="hint">关闭面板后计时继续，设置自动保存。</p></section><div id="timers" class="timers"></div><button id="add" class="wide add">＋ 新建倒计时</button><div class="panelFoot"><span class="dot"></span> 给工作留出专注，给自己留点空白</div></article>
+<button id="reopen" class="glass" hidden>◷ 打开倒计时</button></main>
+
+<div id="paletteProbe" class="timer" aria-hidden="true" style="position:fixed;left:-9999px;visibility:hidden;pointer-events:none"></div><div id="alerts" aria-live="polite"></div><script>
+const $ = s => document.querySelector(s);
+
+const key = location.search.includes("qa=1") ? "still-draft-prototype-v1.7-qa" : "still-draft-prototype-v1.7";
+
+let timers = [], prefs = {
+    level: "light",
+    palette: "original"
+}, alerts = [];
+
+function menuTask() {
+    const running = timers.filter(t => t.state === "running" && remaining(t) > 0);
+    const current = running.find(t => t.id === prefs.menuTaskId);
+    const next = current || running.sort((a, b) => (a.runSince || 0) - (b.runSince || 0) || a.id.localeCompare(b.id))[0];
+    const id = next?.id ?? null;
+    if (prefs.menuTaskId !== id) {
+        prefs.menuTaskId = id;
+        save();
+    }
+    return next;
+}
+
+const remaining = t => t.state === "running" ? Math.max(0, t.end - Date.now()) : t.remaining;
+
+const fmt = ms => {
+    const s = Math.ceil(ms / 1e3);
+    return `${Math.floor(s / 60).toString().padStart(2, "0")}:${(s % 60).toString().padStart(2, "0")}`;
+};
+
+const escapeHTML = s => s.replace(/[&<>"']/g, c => ({
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;"
+}[c]));
+
+function save() {
+    try {
+        localStorage.setItem(key, JSON.stringify({
+            timers: timers,
+            prefs: prefs
+        }));
+    } catch {}
+}
+
+try {
+    const data = JSON.parse(localStorage.getItem(key));
+    if (!data || !Array.isArray(data.timers)) throw 0;
+    timers = data.timers;
+    prefs = {
+        palette: data.prefs?.palette || "original",
+        level: data.prefs?.level || "light",
+        menuTaskId: data.prefs?.menuTaskId ?? null
+    };
+} catch {
+    timers = [ {
+        id: crypto.randomUUID(),
+        name: "专注工作",
+        total: 24e5,
+        remaining: 1938e3,
+        end: Date.now() + 1938e3,
+        state: "running"
+    }, {
+        id: crypto.randomUUID(),
+        name: "摸鱼休息",
+        total: 6e5,
+        remaining: 6e5,
+        state: "paused"
+    } ];
+}
+
+try {
+    if (!localStorage.getItem(key)) {
+        prefs.palette = "original";
+        prefs.level = "light";
+    }
+} catch {}
+
+timers.forEach((t, i) => {
+    t.reminder ??= "light";
+    t.state !== "running" || t.runSince || (t.runSince = Date.now() + i);
+});
+
+const pauseIcon = '<svg viewBox="0 0 20 20" fill="currentColor"><rect x="5" y="3" width="3" height="14" rx="1"/><rect x="12" y="3" width="3" height="14" rx="1"/></svg>', playIcon = '<svg viewBox="0 0 20 20" fill="currentColor"><path d="M5 3 17 10 5 17Z"/></svg>';
+
+function render() {
+    typeof colorDialog !== "undefined" && colorDialog.open && colorDialog.close();
+    $("#timers").innerHTML = timers.length ? timers.map((t, i) => decorateCard(renderNewCard(t, i), t, i)).join("") : '<div style="text-align:center;padding:55px 10px;color:var(--muted)">还没有倒计时<br><small>留一段时间，做一件事。</small></div>';
+    tick(false);
+}
+
+function tick(check = true) {
+    let changed = false;
+    timers.forEach(t => {
+        if (check && t.state === "running" && remaining(t) <= 0) {
+            t.state = "done";
+            t.remaining = 0;
+            alerts.push({
+                id: t.id,
+                name: t.name,
+                color: t.color,
+                color8: t.color8,
+                level: t.reminder || "light"
+            });
+            changed = true;
+        }
+        const row = document.querySelector(`[data-id="${t.id}"]`);
+        if (row) {
+            row.querySelector(".digits").textContent = fmt(remaining(t));
+            const left = Math.max(0, Math.min(100, remaining(t) / t.total * 100));
+            const p = 100 - left;
+            row.dataset.progress = p;
+            row.style.setProperty("--percent", p + "%");
+            row.style.setProperty("--turn", p * 3.6 + "deg");
+            row.querySelector(".progress").setAttribute("aria-label", t.name + "已用进度");
+            row.querySelector(".progress i").style.width = p + "%";
+            row.querySelector(".progress").setAttribute("aria-valuenow", Math.round(p));
+            row.querySelector(".elapsed").textContent = t.state === "ready" ? "点击开始计时" : t.state === "paused" ? "时间已冻结" : t.state === "done" ? "计时结束" : "已专注 " + fmt(Math.max(0, t.total - remaining(t)));
+        }
+    });
+    const t = menuTask();
+    $("#trayText").textContent = "" + (t ? fmt(remaining(t)) : "留白");
+    $("#trayProgress").style.width = (t ? 100 - Math.min(100, remaining(t) / t.total * 100) : 0) + "%";
+    updateLinkedSurfaces();
+    if (typeof updateFocusIndicator === "function") updateFocusIndicator();
+    $("#clock").textContent = (new Date).toLocaleString("zh-CN", {
+        month: "numeric",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+    });
+    $("#count").textContent = `${timers.filter(t => t.state === "running").length} 个正在计时 · ${timers.length} 个倒计时`;
+    if (changed) {
+        save();
+        render();
+        showAlert();
+    }
+}
+
+function openPanel() {
+    $("#panel").hidden = false;
+    $("#reopen").hidden = true;
+}
+
+function closePanel() {
+    $("#panel").hidden = true;
+    $("#reopen").hidden = false;
+}
+
+$("#tray").onclick = () => $("#panel").hidden ? openPanel() : closePanel();
+
+$("#close").onclick = closePanel;
+
+$("#reopen").onclick = openPanel;
+
+function applyPrefs() {
+    [ "original", "apple2", "google2" ].includes(prefs.palette) || (prefs.palette = "original");
+    for (const name of [ "style", "tray", "size", "palette", "direction", "sync", "surfaces", "colors", "glow", "entry", "group", "colorPosition", "toolOrder", "panelPolish" ]) document.body.dataset[name] = {
+        mode: "a",
+        style: "native",
+        tray: "four",
+        size: "two",
+        group: "4",
+        layout4: "horizon",
+        colors: "five",
+        direction: "elapsed",
+        sync: "after",
+        surfaces: "after",
+        glow: "off",
+        colorPosition: "dot",
+        entry: "bottom",
+        toolOrder: "after",
+        panelPolish: "after"
+    }[name] ?? prefs[name];
+    if(typeof applyAppearance === "function") applyAppearance();
+    document.body.dataset.layout = "horizon";
+    document.body.dataset.expanded = "true";
+    $("#close").innerHTML = '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="m6 6 8 8M14 6l-8 8"/></svg>';
+    $("#level").value = prefs.level;
+    document.querySelectorAll('[data-pref="palette"] [data-value]').forEach(b => {
+        b.setAttribute("aria-pressed", String(b.dataset.value === prefs.palette));
+        b.classList.toggle("selected", b.dataset.value === prefs.palette);
+        let d = b.querySelector(".eightDots");
+        if (!d) {
+            d = document.createElement("span");
+            d.className = "eightDots";
+            b.append(d);
+        }
+        d.innerHTML = eightPalettes[b.dataset.value].slice(0, 5).map(c => '<i style="background:' + c + '"></i>').join("");
+    });
+    save();
+}
+
+$("#level").onchange = () => {};
+
+let settingsScroll = 0;
+
+function settingsView(on) {
+    on && (settingsScroll = $("#timers").scrollTop);
+    $("#settingsPage").hidden = !on;
+    $("#timers").hidden = on;
+    $("#add").hidden = on;
+    $(".panelFoot").hidden = on;
+    $("#settingsOpen").hidden = on;
+    if (on) $("#settingsBack").focus(); else {
+        $("#timers").scrollTop = settingsScroll;
+        $("#settingsOpen").focus();
+    }
+}
+
+$("#settingsOpen").onclick = () => settingsView(true);
+
+$("#settingsBack").onclick = () => settingsView(false);
+
+document.querySelector('[data-pref="palette"]').onclick = e => {
+    const b = e.target.closest("[data-value]");
+    if (!b) return;
+    prefs.palette = b.dataset.value;
+    applyPrefs();
+    render();
+};
+
+$("#timers").onclick = e => {
+    const b = e.target.closest("[data-action]");
+    if (!b) return;
+    const id = b.closest("[data-id]").dataset.id, t = timers.find(t => t.id === id), action = b.dataset.action;
+    const r = remaining(t);
+    if (action === "toggle") if (t.state === "running") {
+        t.remaining = r;
+        t.state = "paused";
+    } else {
+        t.remaining = t.state === "done" ? t.total : r;
+        t.end = Date.now() + t.remaining;
+        t.state = "running";
+        t.runSince = Date.now();
+    }
+    if (action === "restart") {
+        t.remaining = t.total;
+        t.end = null;
+        t.state = "ready";
+    }
+    action === "pin" && t.state === "running" && (prefs.menuTaskId = id);
+    if (action === "intensity") {
+        const levels = [ "light", "medium", "strong" ];
+        t.reminder = levels[(levels.indexOf(t.reminder || "light") + 1) % 3];
+    }
+    if (action === "delete") {
+        timers = timers.filter(x => x.id !== id);
+        alerts = alerts.filter(a => a.id !== id);
+        showAlert();
+    }
+    save();
+    render();
+    tick();
+};
+
+document.addEventListener("pointerdown", e => {
+    e.target.closest(".panel,.menubar,dialog,#alerts,#reopen") || closePanel();
+});
+
+$("#preview").onclick = () => {
+    alerts.push({
+        id: null,
+        name: timers[0]?.name || "专注工作",
+        color: timers[0]?.color ?? 0,
+        color8: timers[0]?.color8 ?? 0,
+        level: $("#level").value,
+        preview: true
+    });
+    showAlert();
+};
+
+function showAlert() {
+    const a = alerts[0];
+    $("#tray").classList.toggle("pulse", !!a);
+    if (!a) {
+        $("#alerts").innerHTML = "";
+        return;
+    }
+    const isRest = /摸鱼|休息/.test(a.name), title = isRest ? "休息结束，回到节奏。" : "做得很好，起来走走。", message = isRest ? "把注意力收回来，开始下一段专注。" : "离开屏幕，伸展身体，给眼睛一点休息。";
+    const content = `<div class="alertLabel">${a.preview ? "提醒效果预览" : "倒计时完成"}${alerts.length > 1 ? " · " + alerts.length + " 条提醒" : ""}</div><div class="orb">◷</div><h2>${title}</h2><p>${escapeHTML(a.name)} · 计时结束<br>${message}</p><div class="alertActions"><button data-alert="snooze">再加 5 分钟</button><button data-alert="done" class="primary">${a.preview ? "结束预览" : "知道了，完成"}</button></div>${a.level === "strong" ? '<p style="font-size:11px">按 Esc 也可退出 · 浏览器内效果演示</p>' : ""}`;
+    $("#alerts").innerHTML = a.level === "light" ? `<div class="toast glass"><h3>${a.summary ? "离开期间 · " : a.preview ? "预览 · " : ""}${escapeHTML(a.name)}已完成</h3><p>${message}</p><div class="alertActions">${a.summary ? "" : '<button data-alert="snooze">再加 5 分钟</button>'}<button data-alert="done">知道了</button></div></div>` : `<div class="alertShade ${a.level}"><div class="alertCard glass" role="dialog" aria-modal="true" aria-label="倒计时完成">${content}</div></div>`;
+    updateLinkedSurfaces();
+    $('#alerts [data-alert="done"]').focus();
+}
+
+$("#alerts").onclick = e => {
+    const b = e.target.closest("[data-alert]");
+    if (!b) return;
+    const a = alerts.shift();
+    if (b.dataset.alert === "snooze" && !a.preview) {
+        const t = timers.find(t => t.id === a.id);
+        if (t) {
+            t.total = t.remaining = 3e5;
+            t.end = Date.now() + 3e5;
+            t.state = "running";
+            t.runSince = Date.now();
+            save();
+            render();
+        }
+    }
+    showAlert();
+};
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && alerts.length) {
+        alerts.shift();
+        showAlert();
+    }
+    if (e.key === "Tab" && alerts[0]?.level !== "light" && alerts.length) {
+        const bs = [ ...$("#alerts").querySelectorAll("button") ], i = bs.indexOf(document.activeElement);
+        e.preventDefault();
+        bs[(i + (e.shiftKey ? -1 : 1) + bs.length) % bs.length].focus();
+    }
+});
+
+timers.forEach((t, i) => {
+    t.color === void 0 && (t.color = i % 4);
+});
+
+function renderNewCard(t, i) {
+    const running = t.state === "running", name = escapeHTML(t.name), label = running ? "暂停" : t.state === "done" ? "再来一次" : t.state === "ready" ? "开始" : "继续";
+    return `<section class="timer newCard" data-id="${t.id}" data-color="${t.color ?? i % 4}" data-state="${t.state}"><div class="timerHead"><h3 title="${name}">${name}</h3><span class="status">${running ? "正在计时" : t.state === "done" ? "已完成" : t.state === "ready" ? "待开始" : "已暂停"}${menuTask()?.id === t.id ? " · 菜单栏" : ""}</span></div><div class="digits">${fmt(remaining(t))}</div><div class="progress" role="progressbar" aria-label="${name}进度" aria-valuemin="0" aria-valuemax="100"><i></i></div><div class="meta"><span>共 ${+(t.total / 6e4).toFixed(2)} 分钟</span><span class="elapsed"></span></div><div class="actions"><button class="play" data-action="toggle" aria-label="${label}${name}">${running ? pauseIcon : playIcon}<span>${label}</span></button><button class="restart" data-action="restart" aria-label="重置${name}"><svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7a6 6 0 1 1 0 6M4 3v4h4"/></svg><span>重置</span></button></div></section>`;
+}
+
+function paintSurface(target, color) {
+    const probe = $("#paletteProbe");
+    probe.dataset.color = color ?? 0;
+    probe.removeAttribute("style");
+    probe.style.cssText = "position:fixed;left:-9999px;visibility:hidden;pointer-events:none";
+    prefs.palette === "original" && probe.style.setProperty("--tone", color % 2 ? "#9380c6" : "#329f93");
+    applyEightTone(probe, color ?? 0);
+    const source = getComputedStyle(probe);
+    for (const [role, fallback] of [ [ "tone", "--accent" ], [ "secondary", "--tone" ], [ "wash", "--surface" ], [ "color-ink", "--ink" ], [ "companion", "--surface" ] ]) target.style.setProperty("--follow-" + role, source.getPropertyValue("--" + role).trim() || source.getPropertyValue(fallback).trim());
+}
+
+function updateLinkedSurfaces() {
+    document.querySelectorAll("#timers .timer").forEach(row => applyEightTone(row, Number(row.dataset.color8)));
+    const selected = menuTask();
+    const first = selected ? document.querySelector(`[data-id="${selected.id}"]`) : null;
+    if (first) {
+        $("#trayProgress").style.background = getComputedStyle(first.querySelector(".progress i")).background;
+        $("#trayProgress").style.width = first.dataset.progress + "%";
+    } else $("#trayProgress").style.removeProperty("background");
+    alerts[0] && paintSurface($("#alerts"), timers.find(t => t.id === alerts[0].id)?.color8 ?? alerts[0].color8 ?? 0);
+}
+
+const eightPalettes = {
+    original: [ "#25877f", "#8765bd", "#327db4", "#b26079", "#8b782a", "#bb6742", "#4f8749", "#646db2" ],
+    apple2: [ "#5856d6", "#ce325f", "#007d9c", "#7841b3", "#29884b", "#bc641a", "#b33593", "#62732e" ],
+    google2: [ "#6750a4", "#a44436", "#157565", "#87651f", "#3866a0", "#a14377", "#637337", "#596b73" ]
+};
+
+function colorCount() {
+    return 5;
+}
+
+function nextColor() {
+    const counts = Array(colorCount()).fill(0);
+    timers.forEach(t => {
+        Number.isInteger(t.color8) && counts[t.color8 % colorCount()]++;
+    });
+    let min = Math.min(...counts), choices = counts.map((n, i) => n === min ? i : -1).filter(i => i >= 0);
+    return choices.find(i => i !== (timers.at(-1)?.color8 ?? -1) % colorCount()) ?? choices[0];
+}
+
+timers.forEach(t => {
+    Number.isInteger(t.color8) || (t.color8 = nextColor());
+});
+
+function applyEightTone(el, index) {
+    const set = eightPalettes[prefs.palette] || eightPalettes.original, c = set[index % colorCount()], dark = document.body.dataset.style === "dark";
+    el.style.setProperty("--tone", dark ? `color-mix(in srgb,${c} 55%,white)` : c);
+    el.style.setProperty("--secondary", dark ? `color-mix(in srgb,${c} 35%,white)` : `color-mix(in srgb,${c} 75%,#30475d)`);
+    el.style.setProperty("--color-ink", dark ? `color-mix(in srgb,${c} 25%,white)` : `color-mix(in srgb,${c} 65%,#152630)`);
+    el.style.setProperty("--wash", `color-mix(in srgb,${c} ${dark ? 18 : 10}%,${dark ? "#172630" : "#ffffff"})`);
+    el.style.setProperty("--companion", `color-mix(in srgb,${c} ${dark ? 25 : 18}%,${dark ? "#172630" : "#ffffff"})`);
+}
+
+function decorateCard(html, t, i) {
+    const el = document.createElement("div");
+    el.innerHTML = html;
+    const row = el.firstElementChild;
+    row.dataset.color8 = t.color8;
+    optimizeButtons(row, t, i);
+    row.insertAdjacentHTML("beforeend", `<button class="colorEdit" data-color-edit="${t.id}" aria-label="更改${escapeHTML(t.name)}颜色" title="更改任务颜色"></button>`);
+    groupColorTools(row, t, i);
+    return el.innerHTML;
+}
+
+const colorDialog = document.createElement("dialog");
+
+colorDialog.className = "glass";
+
+colorDialog.id = "colorDialog";
+
+colorDialog.innerHTML = '<div class="dialogHead"><h2>选择任务色</h2><button class="icon" aria-label="关闭颜色选择">×</button></div><p class="hint">颜色跟随任务固定，切换配色方案会保留色位。</p><div class="colorGrid"></div>';
+
+document.body.append(colorDialog);
+
+let colorTask = null;
+
+colorDialog.querySelector(".icon").onclick = () => colorDialog.close();
+
+$("#timers").addEventListener("click", e => {
+    const b = e.target.closest("[data-color-edit]");
+    if (!b) return;
+    colorTask = timers.find(t => t.id === b.dataset.colorEdit);
+    colorDialog.querySelector(".colorGrid").innerHTML = eightPalettes[prefs.palette].slice(0, colorCount()).map((c, i) => `<button data-slot="${i}" style="--chip:${c}" aria-label="色位 ${i + 1}" aria-pressed="${colorTask.color8 % colorCount() === i}"><i></i><span>${colorTask.color8 % colorCount() === i ? "✓ 已选" : "色位 " + (i + 1)}</span></button>`).join("");
+    if ([ "dot", "palette" ].includes("dot")) {
+        colorDialog.classList.add("nearby");
+        colorDialog.show();
+        const r = b.getBoundingClientRect(), w = colorDialog.offsetWidth, h = colorDialog.offsetHeight;
+        colorDialog.style.left = Math.max(8, Math.min(innerWidth - w - 8, r.right - w)) + "px";
+        colorDialog.style.top = (r.bottom + h + 10 < innerHeight ? r.bottom + 8 : Math.max(8, r.top - h - 8)) + "px";
+        colorDialog.querySelector('[aria-pressed="true"]')?.focus();
+    } else {
+        colorDialog.classList.remove("nearby");
+        colorDialog.style.left = "";
+        colorDialog.style.top = "";
+        colorDialog.showModal();
+    }
+});
+
+colorDialog.querySelector(".colorGrid").onclick = e => {
+    const b = e.target.closest("[data-slot]");
+    if (!b || !colorTask) return;
+    colorTask.color8 = Number(b.dataset.slot);
+    save();
+    render();
+    colorDialog.close();
+    document.querySelector(`[data-color-edit="${colorTask.id}"]`)?.focus();
+};
+
+const actionSVG = {
+    restart: '<path d="M4 7a6 6 0 1 1 0 6M4 3v4h4"/>',
+    pin: '<rect x="2" y="3" width="16" height="14" rx="2"/><path d="M2 7h16"/>',
+    delete: '<path d="M4 5h12M8 5V3h4v2M6 5l1 12h6l1-12M9 8v6M11 8v6"/>'
+};
+
+function optimizeButtons(row, t, i) {
+    row.classList.remove("expandedCard");
+    row.classList.add("optCard");
+    const a = row.querySelector(".actions");
+    a.innerHTML = "";
+    const name = escapeHTML(t.name), label = t.state === "running" ? "暂停" : t.state === "done" ? "再来" : t.state === "ready" ? "开始" : "继续";
+    const icon = k => '<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + actionSVG[k] + "</svg>";
+    a.innerHTML = `<button class="play" data-action="toggle" aria-label="${label}${name}" title="${label}">${t.state === "running" ? pauseIcon : playIcon}<span>${label}</span></button><button class="restart" data-action="restart" aria-label="重置${name}" title="重置">${icon("restart")}<span>重置</span></button>`;
+    const tools = document.createElement("div");
+    tools.className = "cardTools";
+    tools.innerHTML = `<button data-action="pin" aria-label="显示到菜单栏${name}" aria-pressed="${menuTask()?.id === t.id}" title="显示到菜单栏">${icon("pin")}</button><button data-action="delete" aria-label="删除${name}" title="删除倒计时">${icon("delete")}</button>`;
+    row.append(tools);
+}
+
+function groupColorTools(row, t, i) {
+    row.classList.add("groupedColor");
+    const tools = row.querySelector(".cardTools"), edit = row.querySelector(".colorEdit");
+    edit.title = "更改颜色";
+    edit.setAttribute("aria-haspopup", "dialog");
+    tools.append(edit);
+}
+
+document.addEventListener("pointerdown", e => {
+    colorDialog.open && colorDialog.classList.contains("nearby") && !e.target.closest("#colorDialog,[data-color-edit]") && colorDialog.close();
+});
+
+document.addEventListener("keydown", e => {
+    if (e.key === "Escape" && colorDialog.open) {
+        colorDialog.close();
+        document.querySelector(`[data-color-edit="${colorTask?.id}"]`)?.focus();
+    }
+});
+
+window.addEventListener("resize", () => {
+    colorDialog.classList.contains("nearby") && colorDialog.close();
+});
+
+$("#timers").addEventListener("scroll", () => {
+    colorDialog.classList.contains("nearby") && colorDialog.close();
+});
+
+const missed = timers.filter(t => t.state === "running" && remaining(t) <= 0);
+
+missed.forEach(t => {
+    t.state = "done";
+    t.remaining = 0;
+});
+
+applyPrefs();
+
+render();
+
+if (missed.length) {
+    alerts.push({
+        id: null,
+        name: missed.length === 1 ? missed[0].name : missed.length + " 个任务",
+        color8: missed[0].color8,
+        level: "light",
+        summary: true
+    });
+    showAlert();
+}
+
+tick();
+
+setInterval(() => tick(), 250);
+
+document.addEventListener("visibilitychange", () => tick());
+
+(() => {
+    let form = null, slot = 0, savedScroll = 0;
+    function styleInline() {
+        form.dataset.bLayout = "outline";
+        const head = form.querySelector("header"), cancel = head.querySelector(".back"), grid = form.querySelector(".editor-grid"), name = grid.firstElementChild, time = grid.lastElementChild, quick = form.querySelector(".quick"), submit = (form.querySelector(".reminder-line"), 
+        form.querySelector(".submit"));
+        name.classList.add("name-field");
+        head.querySelector("h3").textContent = "准备下一件事";
+        const actions = document.createElement("div");
+        actions.className = "draft-actions";
+        actions.append(cancel, submit);
+        form.append(actions);
+        cancel.textContent = "取消新建";
+        const note = document.createElement("p");
+        note.className = "waiting-note";
+        note.textContent = "先保存，准备好再开始。";
+        head.append(note);
+        grid.replaceChildren(name, time);
+        time.append(quick);
+        name.querySelector("label").textContent = "01 / 任务名称";
+        time.querySelector("label").textContent = "02 / 计划时长";
+    }
+    const baseRender = render;
+    render = function() {
+        const activeDraft = form || null;
+        const focus = activeDraft?.contains(document.activeElement) ? document.activeElement : null;
+        const offset = $("#timers").scrollTop;
+        activeDraft && activeDraft.remove();
+        baseRender();
+        if (activeDraft) {
+            $("#timers").append(activeDraft);
+            $("#timers").scrollTop = offset;
+            focus && focus.focus({
+                preventScroll: true
+            });
+        }
+    };
+    function end(focus = true) {
+        if (form) {
+            form.remove();
+            form = null;
+        }
+        $("#timers").hidden = false;
+        $("#add").hidden = false;
+        $(".panelFoot").hidden = false;
+        $("#settingsOpen").hidden = false;
+        document.body.removeAttribute("data-creator");
+        $("#timers").scrollTop = savedScroll;
+        focus && $("#add").focus();
+    }
+    function repaint() {
+        if (!form) return;
+        slot = nextColor();
+        const set = eightPalettes[prefs.palette].slice(0, 5);
+        form.style.setProperty("--draft-tone", set[slot]);
+        const n = Number(form.elements.duration.value);
+        form.querySelectorAll("[data-duration]").forEach(b => b.setAttribute("aria-pressed", String(Number(b.dataset.duration) === n)));
+    }
+    function launch() {
+        end(false);
+        settingsView(false);
+        openPanel();
+        savedScroll = $("#timers").scrollTop;
+        slot = nextColor();
+        document.body.dataset.creator = "b";
+        form = document.createElement("form");
+        form.className = "draft inline";
+        form.setAttribute("aria-label", "新建倒计时");
+        form.innerHTML = `<header><button type="button" class="back">取消</button><h3>新的一段时间</h3></header><div class="editor-grid"><div><label for="draftName">任务名称 · 可选</label><input class="draft-name" id="draftName" name="taskName" maxlength="40" placeholder="这段时间，想做什么？" autocomplete="off"></div><div class="timebox"><label for="draftDuration">计划时长</label><div class="time-input"><input id="draftDuration" name="duration" type="number" min="0.016666666666666666" max="1440" step="any" value="40" required><span>分钟</span></div></div></div><div class="quick">${[ 5, 10, 25, 40, 60 ].map(n => `<button type="button" data-duration="${n}">${n}</button>`).join("")}</div><div class="reminder-line">◷ 轻提醒<br>可在任务工具区调整提醒强度 · 无声音</div><div class="error" role="alert"></div><button class="submit" type="submit">开始倒计时 →</button>`;
+        form.querySelector(".submit").textContent = "确认新建";
+        styleInline();
+        $("#timers").append(form);
+        $("#add").hidden = true;
+        $("#settingsOpen").hidden = true;
+        form.scrollIntoView({
+            block: "nearest"
+        });
+        form.querySelector(".back").onclick = () => end();
+        form.onclick = e => {
+            const d = e.target.closest("[data-duration]");
+            d && (form.elements.duration.value = d.dataset.duration);
+            repaint();
+        };
+        form.oninput = () => {
+            form.querySelector(".error").textContent = "";
+            repaint();
+        };
+        form.onsubmit = e => {
+            e.preventDefault();
+            const total = Math.round(Number(form.elements.duration.value) * 6e4);
+            if (!Number.isFinite(total) || total < 1e3 || total > 864e5) {
+                form.querySelector(".error").textContent = "请输入 1 秒至 1440 分钟之间的时长。";
+                return;
+            }
+            const name = form.elements.taskName.value.trim() || "新的倒计时";
+            slot = nextColor();
+            timers.push({
+                id: crypto.randomUUID(),
+                name: name,
+                total: total,
+                remaining: total,
+                end: null,
+                state: "ready",
+                reminder: "light",
+                runSince: Date.now(),
+                color: slot,
+                color8: slot
+            });
+            end(false);
+            save();
+            render();
+            openPanel();
+            $("#timers").scrollTop = $("#timers").scrollHeight;
+            $("#add").focus();
+        };
+        repaint();
+        form.elements.taskName.focus();
+    }
+    $("#add").onclick = launch;
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && form) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            end();
+        }
+    }, true);
+    const closeOriginal = $("#close").onclick;
+    $("#close").onclick = () => {
+        end(false);
+        closeOriginal();
+    };
+})();
+
+(() => {
+    const labels = {
+        light: "轻提醒",
+        medium: "醒目提醒",
+        strong: "强打断"
+    };
+    const svg = paths => `<svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${paths}</svg>`;
+    function intensityIcon(level) {
+        const n = [ "light", "medium", "strong" ].indexOf(level) + 1;
+        return svg('<path d="M5 8a5 5 0 0 1 10 0v4l2 2H3l2-2ZM8 17h4"/>' + (n === 2 ? '<path d="M2 6v4m16-4v4"/>' : n === 3 ? '<path d="M10 5v4"/><circle cx="10" cy="11" r=".6" fill="currentColor"/><path d="M1 4v6m18-6v6"/>' : ""));
+    }
+    const workbench = document.createElement("div");
+    workbench.className = "prototype-workbench finalized";
+    $("main").before(workbench);
+    workbench.append($("main"));
+    const announcement = document.createElement("div");
+    announcement.id = "sortAnnouncement";
+    announcement.setAttribute("role", "status");
+    announcement.setAttribute("aria-live", "polite");
+    announcement.className = "sr-only";
+    document.body.append(announcement);
+    document.body.dataset.menuMode = "after";
+    document.body.dataset.dragStyle = "name";
+    const originalOptimize = optimizeButtons;
+    optimizeButtons = function(row, t, i) {
+        originalOptimize(row, t, i);
+        t.reminder ??= "light";
+        const tools = row.querySelector(".cardTools"), pin = tools.querySelector('[data-action="pin"]');
+        pin.innerHTML = svg('<rect x="2" y="3" width="16" height="14" rx="2"/><path d="M2 7h16"/><rect x="11" y="4" width="5" height="2" rx=".5" fill="currentColor"/>');
+        pin.disabled = t.state !== "running";
+        pin.title = pin.disabled ? "开始任务后可显示到菜单栏" : "显示到菜单栏";
+        pin.setAttribute("aria-label", "显示到菜单栏：" + t.name);
+        pin.setAttribute("aria-pressed", String(menuTask()?.id === t.id));
+        {
+            const zone = row.querySelector(".timerHead");
+            zone.dataset.sortHandle = "";
+            zone.classList.add("name-drag-zone");
+            zone.tabIndex = timers.length < 2 ? -1 : 0;
+            zone.setAttribute("role", "group");
+            zone.setAttribute("aria-label", "任务 " + t.name + "；拖动排序或用上下方向键调整位置");
+            zone.setAttribute("aria-disabled", String(timers.length < 2));
+            zone.title = timers.length < 2 ? "至少两个任务时可拖动排序" : "拖动排序";
+        }
+        const b = document.createElement("button");
+        b.dataset.action = "intensity";
+        b.title = "提醒强度：" + labels[t.reminder] + "；点击切换";
+        b.setAttribute("aria-label", "提醒强度：" + labels[t.reminder] + "，" + t.name);
+        b.innerHTML = intensityIcon(t.reminder);
+        pin.after(b);
+    };
+    const originalTick = tick;
+    tick = function(check = true) {
+        originalTick(check);
+        const current = menuTask();
+        document.querySelectorAll(".timer[data-id]").forEach(row => {
+            const t = timers.find(t => t.id === row.dataset.id);
+            if (!t) return;
+            row.querySelector(".status").textContent = {
+                running: "正在计时",
+                ready: "待开始",
+                paused: "已暂停",
+                done: "已完成"
+            }[t.state] + (current?.id === t.id ? " · 菜单栏" : "");
+            row.querySelector('[data-action="pin"]')?.setAttribute("aria-pressed", String(current?.id === t.id));
+        });
+    };
+    let drag = null, raf = 0;
+    function cleanDrag(commit) {
+        if (!drag) return;
+        const d = drag;
+        drag = null;
+        cancelAnimationFrame(raf);
+        document.querySelectorAll(".drag-active,.drop-before,.drop-after").forEach(e => e.classList.remove("drag-active", "drop-before", "drop-after"));
+        if (commit && d.started && d.target) {
+            const from = timers.find(t => t.id === d.id), remainingTasks = timers.filter(t => t.id !== d.id), at = remainingTasks.findIndex(t => t.id === d.target);
+            if (from && at >= 0) {
+                remainingTasks.splice(at + (d.after ? 1 : 0), 0, from);
+                timers = remainingTasks;
+                save();
+                $("#sortAnnouncement").textContent = "已保存任务顺序。";
+                render();
+            }
+        } else d.started && ($("#sortAnnouncement").textContent = "已取消拖动。");
+    }
+    function positionDrag() {
+        if (!drag?.started) return;
+        const area = $("#timers"), r = area.getBoundingClientRect();
+        drag.y < r.top + 36 ? area.scrollTop -= 7 : drag.y > r.bottom - 36 && (area.scrollTop += 7);
+        const items = [ ...area.querySelectorAll(".timer[data-id]") ].filter(e => e.dataset.id !== drag.id);
+        items.forEach(e => e.classList.remove("drop-before", "drop-after"));
+        const target = items.find(e => drag.y < e.getBoundingClientRect().bottom) || items.at(-1);
+        if (target) {
+            drag.target = target.dataset.id;
+            drag.after = drag.y > target.getBoundingClientRect().top + target.offsetHeight / 2;
+            target.classList.add(drag.after ? "drop-after" : "drop-before");
+        }
+        raf = requestAnimationFrame(positionDrag);
+    }
+    $("#timers").addEventListener("pointerdown", e => {
+        const grip = e.target.closest("[data-sort-handle]");
+        if (!grip || grip.disabled || grip.getAttribute("aria-disabled") === "true" || e.button !== 0 || e.target.closest("a,input,select,textarea,[data-action]")) return;
+        e.preventDefault();
+        grip.focus({
+            preventScroll: true
+        });
+        drag = {
+            id: grip.closest("[data-id]").dataset.id,
+            x: e.clientX,
+            y: e.clientY,
+            startY: e.clientY,
+            started: false
+        };
+    });
+    document.addEventListener("pointermove", e => {
+        if (!drag) return;
+        drag.y = e.clientY;
+        if (!drag.started && Math.hypot(e.clientX - drag.x, e.clientY - drag.startY) > 5) {
+            drag.started = true;
+            document.querySelector(`[data-id="${drag.id}"]`)?.classList.add("drag-active");
+            positionDrag();
+        }
+        drag.started && e.preventDefault();
+    }, {
+        passive: false
+    });
+    document.addEventListener("pointerup", () => cleanDrag(true));
+    document.addEventListener("pointercancel", () => cleanDrag(false));
+    window.addEventListener("blur", () => cleanDrag(false));
+    document.addEventListener("keydown", e => {
+        if (e.key === "Escape" && drag) {
+            e.preventDefault();
+            e.stopImmediatePropagation();
+            cleanDrag(false);
+        }
+    }, true);
+    $("#timers").addEventListener("keydown", e => {
+        const grip = e.target.closest("[data-sort-handle]");
+        if (!grip || grip.disabled || grip.getAttribute("aria-disabled") === "true" || ![ "ArrowUp", "ArrowDown" ].includes(e.key)) return;
+        e.preventDefault();
+        const id = grip.closest("[data-id]").dataset.id, i = timers.findIndex(t => t.id === id), j = i + (e.key === "ArrowUp" ? -1 : 1);
+        if (j < 0 || j >= timers.length) return;
+        [timers[i], timers[j]] = [ timers[j], timers[i] ];
+        save();
+        render();
+        document.querySelector(`[data-id="${id}"] [data-sort-handle]`)?.focus();
+        $("#sortAnnouncement").textContent = "已保存任务顺序。";
+    });
+    save();
+    render();
+})();
+</script><script>
+// Comparison preferences are isolated from product task data.
+const comparisonKey = key + "-comparison";
+let comparison = {display:"block",scene:"full",positions:{},capsule:"clearGlass"};
+try { Object.assign(comparison, JSON.parse(localStorage.getItem(comparisonKey)) || {}); } catch {}
+if (!["tray","block","capsule","line"].includes(comparison.display)) comparison.display="block";
+if (!["desktop","full"].includes(comparison.scene)) comparison.scene="full";
+comparison.positions ||= {};
+if (!["light","dark","color"].includes(comparison.backdrop)) comparison.backdrop="light";
+if (!["ring","paper","clearGlass","ring2","paper2","glass2"].includes(comparison.capsule)) comparison.capsule="clearGlass";
+comparison.display="capsule"; comparison.capsule="ring2"; localStorage.setItem(key+"-theme-review","icons");
+let capsuleActivity = Date.now();
+function saveComparison(){localStorage.setItem(comparisonKey,JSON.stringify(comparison));}
+function placeIndicator(){
+ const el=$("#focusIndicator"), pos=comparison.positions[comparison.display];
+ const leftEdge=parseFloat(getComputedStyle(document.body).getPropertyValue("--review-width"))+12;
+ // Anchor one horizontal edge only, so intrinsic width can shrink after hover.
+ const rightAnchored = pos && comparison.display!=="block" && pos.edge==="right";
+ el.style.right=rightAnchored ? "12px" : pos ? "auto" : "24px";
+ el.style.left=pos && !rightAnchored ? Math.max(leftEdge,Math.min(innerWidth-el.offsetWidth-12,pos.x))+"px" : "auto";
+ el.style.top=pos ? Math.max(8,Math.min(innerHeight-el.offsetHeight-12,pos.y))+"px" : (comparison.display==="line"?"8px":"24px");
+}
+function updateFocusIndicator(){
+ const el=$("#focusIndicator"), t=menuTask();
+ el.hidden=document.body.dataset.scene!=="full" || document.body.dataset.display==="tray" || !t;
+ el.dataset.idle=String(["ring2","paper2","glass2"].includes(comparison.capsule) || Date.now()-capsuleActivity>=5000);
+ if(!t)return;
+ el.style.setProperty("--focus-angle",Math.max(0,Math.min(360,remaining(t)/t.total*360))+"deg");
+ el.style.setProperty("--focus-elapsed-angle",Math.max(0,Math.min(360,(1-remaining(t)/t.total)*360))+"deg");
+ el.querySelector(".focusName").textContent=t.name || "倒计时";
+ el.querySelector(".focusTime").textContent=fmt(remaining(t));
+ el.querySelector(".focusTrack i").style.width=Math.max(0,Math.min(100,100-remaining(t)/t.total*100))+"%";
+ el.setAttribute("aria-label",`${t.name || "倒计时"}，剩余 ${fmt(remaining(t))}，打开控制`);
+ // Read the task's color token, not the background shorthand (which includes
+ // image/repeat/position values and is invalid as a color-mix color argument).
+ const taskRow = document.querySelector(`#timers [data-id="${t.id}"]`);
+ const taskTone = taskRow ? getComputedStyle(taskRow).getPropertyValue("--tone").trim() : "";
+ el.style.setProperty("--indicator-tone", taskTone || "#328f87");
+}
+function applyComparison(){
+ document.body.dataset.display=comparison.display;document.body.dataset.scene=comparison.scene;
+ document.body.dataset.capsule=comparison.capsule;
+ document.body.dataset.backdrop=comparison.backdrop;
+ document.querySelectorAll("button[data-backdrop]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.backdrop===comparison.backdrop));
+ document.querySelectorAll("button[data-capsule]").forEach(b=>b.setAttribute("aria-pressed",b.dataset.capsule===comparison.capsule));
+ $("#fullScene").hidden=comparison.scene!=="full";
+ document.querySelectorAll("[data-display]").forEach(b=>{if(b.tagName==="BUTTON")b.setAttribute("aria-pressed",b.dataset.display===comparison.display)});
+ document.querySelectorAll("[data-scene]").forEach(b=>{if(b.tagName==="BUTTON")b.setAttribute("aria-pressed",b.dataset.scene===comparison.scene)});
+ updateFocusIndicator();placeIndicator();saveComparison();
+}
+$(".prototypeReview").addEventListener("click",e=>{
+ const b=e.target.closest("button");if(!b)return;
+ capsuleActivity=Date.now();
+ if(b.dataset.capsule){comparison.capsule=b.dataset.capsule;comparison.display="capsule";comparison.scene="full";closePanel();}
+ if(b.dataset.backdrop)comparison.backdrop=b.dataset.backdrop;
+ if(b.dataset.display)comparison.display=b.dataset.display;
+ if(b.dataset.scene){comparison.scene=b.dataset.scene;comparison.scene==="full"?closePanel():openPanel();}
+ applyComparison();
+});
+let indicatorDrag=null, suppressIndicatorClick=false;
+$("#focusIndicator").addEventListener("pointerdown",e=>{
+ if(e.button!==0)return;const rect=e.currentTarget.getBoundingClientRect();
+ indicatorDrag={id:e.pointerId,x:e.clientX,y:e.clientY,left:rect.left,top:rect.top,moved:false};suppressIndicatorClick=false;e.currentTarget.setPointerCapture(e.pointerId);
+});
+$("#focusIndicator").addEventListener("pointermove",e=>{
+ if(!indicatorDrag)return;const d=indicatorDrag;
+ if(Math.hypot(e.clientX-d.x,e.clientY-d.y)>5)d.moved=true;
+ if(!d.moved)return;
+ comparison.positions[comparison.display]={x:d.left+e.clientX-d.x,y:d.top+e.clientY-d.y};placeIndicator();
+});
+function finishIndicatorDrag(e){
+ if(!indicatorDrag)return;
+ suppressIndicatorClick=indicatorDrag.moved;
+ if(indicatorDrag.moved && comparison.display!=="block"){
+ const el=$("#focusIndicator"),r=el.getBoundingClientRect();
+ const left=parseFloat(getComputedStyle(document.body).getPropertyValue("--review-width"))+12;
+ const edge=r.left<(left+innerWidth-r.width)/2?"left":"right";
+ comparison.positions[comparison.display]={x:edge==="left"?left:innerWidth-r.width-12,y:r.top,edge};placeIndicator();
+ }
+ indicatorDrag=null;saveComparison();
+}
+$("#focusIndicator").addEventListener("pointerup",finishIndicatorDrag);
+$("#focusIndicator").addEventListener("pointercancel",finishIndicatorDrag);
+$("#focusIndicator").onclick=()=>{if(suppressIndicatorClick){suppressIndicatorClick=false;return;}openPanel();};
+for(const event of ["pointerenter","pointermove","pointerdown","focus","keydown"]){
+ $("#focusIndicator").addEventListener(event,()=>{capsuleActivity=Date.now();$("#focusIndicator").dataset.idle=String(["ring2","paper2","glass2"].includes(comparison.capsule));});
+}
+$("#focusIndicator").addEventListener("pointermove",e=>{
+ const r=e.currentTarget.getBoundingClientRect();
+ e.currentTarget.style.setProperty("--glint-x",Math.max(0,Math.min(100,(e.clientX-r.left)/r.width*100))+"%");
+ e.currentTarget.style.setProperty("--glint-y",Math.max(0,Math.min(100,(e.clientY-r.top)/r.height*100))+"%");
+});
+window.addEventListener("resize",placeIndicator);
+if(comparison.scene==="full")closePanel();
+applyComparison();
+</script><script>
+const systemAppearance=matchMedia("(prefers-color-scheme: dark)");
+function applyAppearance(){
+ const variant=localStorage.getItem(key+"-theme-review") || "after";
+ const enabled=variant!=="before";
+ const dark=enabled && (prefs.autoTheme ? matchMedia("(prefers-color-scheme: dark)").matches : !!prefs.darkTheme);
+ document.body.dataset.style=dark?"dark":"native";
+ $("#appearanceSettings").hidden=!enabled;
+ if(typeof renderThemeVariants === "function") renderThemeVariants(variant,dark);
+ $("#autoTheme").setAttribute("aria-checked",String(!!prefs.autoTheme));
+ $("#autoTheme").textContent=prefs.autoTheme?"开启":"关闭";
+ $("#darkTheme").setAttribute("aria-checked",String(dark));
+ $("#darkTheme").textContent=dark?"开启":"关闭";
+ $("#darkTheme").disabled=!!prefs.autoTheme;
+ document.querySelectorAll("[data-theme-review]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.themeReview===variant)));
+}
+function refreshAppearance(){applyAppearance();render();save();}
+$("#autoTheme").onclick=()=>{prefs.autoTheme=!prefs.autoTheme;refreshAppearance();};
+$("#darkTheme").onclick=()=>{prefs.darkTheme=!prefs.darkTheme;refreshAppearance();};
+systemAppearance.addEventListener("change",()=>{if(prefs.autoTheme)refreshAppearance();});
+document.querySelectorAll("[data-theme-review]").forEach(b=>b.addEventListener("click",()=>{localStorage.setItem(key+"-theme-review",b.dataset.themeReview);refreshAppearance();}));
+refreshAppearance();
+</script><script>
+function renderThemeVariants(variant,dark){
+ let area=document.querySelector('#themeVariantControls');
+ if(!area){area=document.createElement('div');area.id='themeVariantControls';$('#appearanceSettings').append(area);}
+ document.querySelectorAll('#appearanceSettings > .appearanceRow').forEach(row=>row.hidden=variant!=='after');
+ area.hidden=!['segment','cards','adaptive','compact','dropdown','icons'].includes(variant);
+ const mode=prefs.autoTheme?'auto':prefs.darkTheme?'dark':'light';
+ if(variant==='dropdown'){
+ area.className='themeDropdown';
+ area.innerHTML='<label for="appearanceModeSelect">外观模式</label><select id="appearanceModeSelect">'+[['light','白天'],['dark','黑夜'],['auto','自动 · 跟随系统']].map(([value,label])=>`<option value="${value}" ${mode===value?'selected':''}>${label}</option>`).join('')+'</select>';
+ area.querySelector('select').onchange=e=>{const value=e.target.value;prefs.autoTheme=value==='auto';if(value!=='auto')prefs.darkTheme=value==='dark';refreshAppearance();};
+ }else if(variant==='adaptive'){
+ area.className='';
+ area.innerHTML=`<div class="appearanceRow"><span>跟随系统</span><button data-mode="autoToggle" role="switch" aria-checked="${!!prefs.autoTheme}">${prefs.autoTheme?'开启':'关闭'}</button></div>${prefs.autoTheme?'':`<button class="wide" data-mode="${dark?'light':'dark'}">切换到${dark?'白天':'黑夜'}</button>`}<p class="hint">当前：${dark?'黑夜':'白天'} · ${prefs.autoTheme?'跟随系统':'手动选择'}</p>`;
+ }else{
+ area.className=variant==='compact'?'themeCards themeCompact':variant==='icons'?'themeIcons':variant==='cards'?'themeCards':'themeSegments';
+ area.innerHTML=[['light','白天'],['dark','黑夜'],['auto','自动']].map(([value,label])=>`<button data-mode="${value}" aria-pressed="${mode===value}">${['cards','compact'].includes(variant)?`<span class="themeSample ${value}" aria-hidden="true"></span>`:variant==='icons'?`<span class="themeModeIcon" aria-hidden="true">${value==='light'?'☀':value==='dark'?'☾':'◐'}</span>`:''}${label}</button>`).join('');
+ }
+ area.onclick=e=>{const b=e.target.closest('button[data-mode]');if(!b)return;const value=b.dataset.mode;if(value==='autoToggle')prefs.autoTheme=!prefs.autoTheme;else{prefs.autoTheme=value==='auto';if(value!=='auto')prefs.darkTheme=value==='dark';}refreshAppearance();};
+}
+refreshAppearance();
+</script></body></html>

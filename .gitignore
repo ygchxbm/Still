@@ -1,3 +1,15 @@
 .build/
 build/
 .DS_Store
+
+# Xcode 本机状态
+xcuserdata/
+*.xcuserstate
+DerivedData/
+
+# Python 缓存
+__pycache__/
+*.py[cod]
+
+# 发布产物
+/dist/

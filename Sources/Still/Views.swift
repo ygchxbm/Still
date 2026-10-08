@@ -18,9 +18,7 @@ struct PanelView: View {
                 if !store.settingsPresented && !creating { Button { store.settingsPresented = true } label: { Image(systemName: "gearshape").frame(width: 28,height: 28) }.help("设置") }
                 Button(action: close) { Image(systemName: "xmark").font(.system(size: 12, weight: .medium)).frame(width: 28,height: 28) }.help("收起面板")
             }.buttonStyle(HandButtonStyle())
-            if reminders.pending {
-                VStack { Text(reminders.summary).font(.caption); Button("知道了") { reminders.acknowledgeLight() } }.padding(10).background(.white.opacity(0.3), in: RoundedRectangle(cornerRadius: 10))
-            }
+
             if let error = store.storageError { Text(error).font(.caption).foregroundStyle(.red).textSelection(.enabled) }
             if store.settingsPresented {
                 SettingsView(store: store, fullscreen: fullscreen, reminders: reminders)
@@ -50,8 +48,6 @@ struct PanelView: View {
                 Text("给工作留出专注，给自己留点空白").font(.system(size: 8)).foregroundStyle(.secondary)
             }
         }.padding(16).frame(width: 322).padding(.top, 9).background(GlassSurface()).clipShape(PanelOutline()).overlay { PanelOutline().stroke(LinearGradient(colors: [.white.opacity(0.98), .white.opacity(0.55), .white.opacity(0.78)], startPoint: .topLeading, endPoint: .bottomTrailing), lineWidth: 1.2) }.buttonStyle(HandButtonStyle())
-        .onChange(of: store.appearanceMode) { _, mode in NSApp.appearance = mode.appearance }
-        .onChange(of: store.settingsPresented) { _, showing in if showing { reminders.refreshPermission() } }
     }
 }
 struct CardView: View {
@@ -61,13 +57,13 @@ struct CardView: View {
     var sorting: TaskSortSession
     @State private var colors = false
     @State private var cardHeight: CGFloat = 230
-    var tone: Color { scheme == .dark ? store.palette.mixed(task.slot, amount: 0.55, base: 0xffffff) : store.palette.color(task.slot) }
+    var tone: Color { store.palette.tone(task.slot, dark: scheme == .dark) }
     var body: some View {
-        TimelineView(.periodic(from: .now, by: 1)) { context in
+        TimelineView(.animation(minimumInterval: 1, paused: task.deadline == nil)) { context in
             let left = task.remaining(at: context.date)
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 5) { Text(task.name).font(.system(size: 13,weight: .semibold)).lineLimit(1); Text((left == 0 ? "已完成" : task.deadline == nil ? (task.frozen == task.duration ? "待开始" : "已暂停") : "正在计时") + (store.menuTaskID == task.id ? " · 菜单栏" : "")).font(.system(size: 9)).foregroundStyle(tone) }
+                    VStack(alignment: .leading, spacing: 5) { Text(task.name).font(.system(size: 13,weight: .semibold)).lineLimit(1); Text((task.isExtension ? (left == 0 ? "加时完成" : task.deadline == nil ? "加时已暂停" : "加时中") : (left == 0 ? "已完成" : task.deadline == nil ? (task.frozen == task.duration ? "待开始" : "已暂停") : "正在计时")) + (store.menuTaskID == task.id ? " · 菜单栏" : "")).font(.system(size: 9)).foregroundStyle(tone) }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .overlay { TaskNameDragArea(store: store, task: task, session: sorting) }
                     .help("拖动排序")
@@ -87,7 +83,7 @@ struct CardView: View {
                         ctx.fill(Path(roundedRect: CGRect(x: x,y: 0,width: width,height: 18),cornerRadius: 2),with: .color(tone))
                     }
                 }.frame(height: 18)
-                HStack { Text("共 \(Int(task.duration/60)) 分钟"); Spacer(); Text(left == 0 ? "计时结束" : task.deadline == nil ? (task.frozen == task.duration ? "点击开始计时" : "时间已冻结") : "已专注 " + timeText(task.duration-left)) }.font(.system(size: 9)).foregroundStyle(tone)
+                HStack { Text(task.originalDuration.map { "原定 \(Int($0/60)) · 加时 \(Int(task.duration/60)) 分钟" } ?? "共 \(Int(task.duration/60)) 分钟"); Spacer(); Text(left == 0 ? "计时结束" : task.deadline == nil ? (task.frozen == task.duration ? "点击开始计时" : "时间已冻结") : (task.isExtension ? "已加时 " : "已专注 ") + timeText(task.duration-left)) }.font(.system(size: 9)).foregroundStyle(tone)
                 HStack { Spacer(); HStack(spacing: 0) {
                     Button { store.toggle(task.id) } label: { Label(left == 0 ? "再来" : task.deadline == nil ? (task.frozen == task.duration ? "开始" : "继续") : "暂停", systemImage: task.deadline == nil || left == 0 ? "play.fill" : "pause.fill").font(.system(size: 10)).padding(.horizontal, 15).padding(.vertical, 9).background(tone,in: Capsule()).foregroundStyle(.white) }
                     Button { store.reset(task.id) } label: { Label("重置",systemImage: "arrow.counterclockwise").font(.system(size: 10)).padding(.horizontal, 10).foregroundStyle(tone) }

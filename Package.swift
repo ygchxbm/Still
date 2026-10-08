@@ -1,3 +1,12 @@
 // swift-tools-version: 6.0
 import PackageDescription
-let package = Package(name: "Still", platforms: [.macOS(.v14)], products: [.executable(name: "Still", targets: ["Still"])], targets: [.executableTarget(name: "Still"), .testTarget(name: "StillTests", dependencies: ["Still"])])
+
+let package = Package(
+    name: "Still",
+    platforms: [.macOS(.v14)],
+    products: [.executable(name: "Still", targets: ["Still"])],
+    targets: [
+        .executableTarget(name: "Still"),
+        .testTarget(name: "StillTests", dependencies: ["Still"])
+    ]
+)

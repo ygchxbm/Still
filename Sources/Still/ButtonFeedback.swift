@@ -25,6 +25,7 @@ private struct CursorRegion: NSViewRepresentable {
     var enabled: Bool
     func makeNSView(context: Context) -> CursorView { CursorView() }
     func updateNSView(_ view: CursorView, context: Context) {
+        guard view.enabled != enabled else { return }
         view.enabled = enabled
         view.window?.invalidateCursorRects(for: view)
     }

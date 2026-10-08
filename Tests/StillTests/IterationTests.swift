@@ -3,8 +3,7 @@ import XCTest
 
 final class IterationTests: XCTestCase {
     @MainActor func testMenuSelectionIndependentOfOrderAndRestores() throws {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        let file = try temporaryStateFile()
         var now = Date(timeIntervalSince1970: 1000)
         let store = TimerStore(file: file, clock: { now })
         for name in ["一", "二", "三"] { store.add(name, minutes: 1) }
@@ -27,9 +26,7 @@ final class IterationTests: XCTestCase {
     }
 
     @MainActor func testVersionOneMigrationPreservesExistingReminderAndNewTasksAreLight() throws {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        try FileManager.default.createDirectory(at: file.deletingLastPathComponent(), withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        let file = try temporaryStateFile()
         let id = UUID()
         let old = """
         {"version":1,"tasks":[{"id":"\(id.uuidString)","name":"原任务","duration":600,"frozen":600,"slot":0}],"palette":"原样","reminder":"强打断"}
@@ -66,9 +63,8 @@ final class IterationTests: XCTestCase {
         XCTAssertEqual(tasks.map(\.intensity), ReminderLevel.allCases)
     }
 
-    @MainActor func testInvalidMovesAndKeyboardBoundariesLeaveStateUnchanged() {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+    @MainActor func testInvalidMovesAndKeyboardBoundariesLeaveStateUnchanged() throws {
+        let file = try temporaryStateFile()
         let store = TimerStore(file: file)
         for name in ["一", "二", "三"] { store.add(name, minutes: 1) }
         let ids = store.tasks.map(\.id)

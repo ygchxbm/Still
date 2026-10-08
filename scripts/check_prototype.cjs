@@ -1,7 +1,10 @@
 // Source-level checks; does not imply browser or visual acceptance.
 const fs=require('node:fs'),path=require('node:path'),vm=require('node:vm'),assert=require('node:assert/strict');
-const version=process.argv[2]||'v1.7';
-assert.match(version,/^v\d+\.\d+(?:\.\d+)?$/);
+const version=process.argv[2];
+if(process.argv.length!==3 || !/^v\d+\.\d+(?:\.\d+)?$/.test(version || '')){
+ console.error('用法：node scripts/check_prototype.cjs vX.Y（例如 v1.8）');
+ process.exit(2);
+}
 const folder=path.join(__dirname,'../prototype',version),final=fs.readFileSync(path.join(folder,`留白-${version}-定稿.html`),'utf8');
 for(const file of fs.readdirSync(folder).filter(f=>f.endsWith('.html'))){const html=fs.readFileSync(path.join(folder,file),'utf8');for(const [i,m] of [...html.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/g)].entries()){if(m[0].includes('type="application/json"')){JSON.parse(m[1]);continue;}new vm.Script(m[1],{filename:file+':'+i});}}
 const fn=final.match(/function menuTask\(\)\s*\{[\s\S]*?\n\}/)?.[0];assert(fn,'Missing menuTask');
@@ -17,6 +20,11 @@ assert.match(final,/reminder:\s*["']light["']/);assert.match(final,/level:\s*t.r
 console.log(version+': all HTML scripts parse; menu selection scenarios pass; finalized entry checks pass. Browser acceptance remains separate.');
 const eventBlock=final.match(/\$\("#timers"\)\.onclick = e => \{[\s\S]*?\n\};/)[0];
 const area={};ctx.$=()=>area;ctx.render=()=>{};ctx.tick=()=>{};ctx.showAlert=()=>{};ctx.alerts=[];
+if (version === 'v1.8') {
+ for (const name of ['restoreOriginalDuration','addFiveMinutes']) {
+  vm.runInContext(final.match(new RegExp('function '+name+'\\(t\\) \\{[\\s\\S]*?\\n\\}'))[0],ctx);
+ }
+}
 vm.runInContext(eventBlock,ctx);
 const act=(id,action)=>area.onclick({target:{closest:()=>({dataset:{action},closest:()=>({dataset:{id}})})}});
 ctx.timers=[{id:'a',state:'ready',total:60000,remaining:60000,left:60000,reminder:'light'},task('b',2)];
@@ -83,4 +91,20 @@ if (version === 'v1.7') {
     display.document.fullscreenElement={};vm.runInNewContext(indicators+'\nupdateFocusIndicator();',display);
     assert(!capsule.hidden);assert.equal(children['.focusName'].textContent,'Next');
     console.log('v1.7: default auto/manual/system appearance, fullscreen visibility, task handoff/color and elapsed ring checks pass.');
+}
+
+if (version === 'v1.8') {
+ assert(!/extension-actions|data-action="plus"|action === "plus"/.test(final), 'Unapproved task-card extension entry remains');
+ assert.match(final,/data-alert="snooze"/);
+ assert(!/DRAFT_ONLY|proposalPanel|draftTest|previewScene|extensionMode|completionDisplay|idleIcon|cat-cutout|const solid|data-extension|data-preview-scene|test-complete/.test(final), 'Review or unselected code remains');
+ assert.match(final,/still-final-prototype-v1\.8/);
+ const t={id:'extension',state:'done',total:1500000,remaining:0,left:0};
+ ctx.addFiveMinutes(t); assert.equal(t.originalTotal,1500000); assert.equal(t.total,300000); assert.equal(t.remaining,300000);
+ t.left=120000;ctx.addFiveMinutes(t);assert.equal(t.remaining,420000);assert.equal(t.total,600000);
+ t.state='done';t.left=0;ctx.addFiveMinutes(t);assert.equal(t.total,300000);assert.equal(t.originalTotal,1500000);
+ ctx.restoreOriginalDuration(t);assert.equal(t.total,1500000);assert.equal(t.extensionStage,undefined);
+ assert.match(final,/const task = menuTask\(\)/);assert.match(final,/element.hidden = !full \|\| !task/);
+ assert.match(final,/stroke="currentColor"/);assert.match(final,/if \(!t\) .*idleCatIcon\(\)/);
+ for (const name of [`留白-${version}-方案存档.html`,'版本迭代.md']) assert(fs.existsSync(path.join(folder,name)));
+ console.log('v1.8: independent extension, repeat extension, original duration restoration, idle icon and review cleanup checks pass.');
 }

@@ -2,8 +2,7 @@ import XCTest
 @testable import Still
 final class TimerStoreTests: XCTestCase {
     @MainActor func testPersistencePauseAndResume() async throws {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        let file = try temporaryStateFile()
         var now = Date(timeIntervalSince1970: 1000)
         let store = TimerStore(file: file, clock: { now })
         store.add("工作", minutes: 40, startImmediately: true)
@@ -20,8 +19,7 @@ final class TimerStoreTests: XCTestCase {
         XCTAssertEqual(restored.tasks[0].remaining(at: now), 2200, accuracy: 0.01)
     }
     @MainActor func testRecoveryAndSingleCompletion() async throws {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        let file = try temporaryStateFile()
         var now = Date(timeIntervalSince1970: 2000)
         let store = TimerStore(file: file, clock: { now }); store.add("一", minutes: 1, startImmediately: true); store.add("二", minutes: 2, startImmediately: true)
         now += 300
@@ -44,10 +42,7 @@ final class TimerStoreTests: XCTestCase {
         XCTAssertEqual(resetRestored.tasks[0].remaining(at: now), 50)
     }
     @MainActor func testCorruptFilePreservedAndInvalidDurationRejected() async throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let file = dir.appendingPathComponent("state.json"), bytes = Data("broken".utf8)
+        let file = try temporaryStateFile(), bytes = Data("broken".utf8)
         try bytes.write(to: file)
         let store = TimerStore(file: file)
         XCTAssertNotNil(store.storageError)
@@ -57,37 +52,38 @@ final class TimerStoreTests: XCTestCase {
         XCTAssertEqual(try Data(contentsOf: file), bytes)
     }
     @MainActor func testOrderColorDeleteSnoozePersist() async throws {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        let file = try temporaryStateFile()
         var now = Date()
         let store = TimerStore(file: file, clock: { now })
         for i in 0..<5 { store.add("任务\(i)", minutes: 2, startImmediately: true) }
         XCTAssertEqual(Set(store.tasks.map(\.slot)).count, 5)
         now += 121; store.reconcile()
-        let id = store.tasks[4].id; store.move(id, relativeTo: store.tasks[0].id, after: false); store.snooze([id]); store.remove(store.tasks[1].id)
+        let completed = store.tasks[4]
+        let id = completed.id
+        store.move(id, relativeTo: store.tasks[0].id, after: false)
+        store.snooze(completions: [completed]); store.remove(store.tasks[1].id)
         let restored = TimerStore(file: file, clock: { now })
         XCTAssertEqual(restored.tasks.first?.id, id); XCTAssertEqual(restored.tasks.count, 4)
         XCTAssertEqual(restored.tasks[0].remaining(at: now), 300)
     }
     @MainActor func testOldReminderCannotOverwriteRestartedOrResetTask() async throws {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        let file = try temporaryStateFile()
         var now = Date()
         let store = TimerStore(file: file, clock: { now })
         store.add("专注", minutes: 40, startImmediately: true)
         let id = store.tasks[0].id
         now += 2401; store.reconcile()
-        store.reset(id); store.snooze([id])
+        let completed = store.tasks[0]
+        store.reset(id); store.snooze(completions: [completed])
         XCTAssertEqual(store.tasks[0].duration, 2400)
         XCTAssertNil(store.tasks[0].deadline)
         store.toggle(id); let deadline = store.tasks[0].deadline
-        store.snooze([id])
+        store.snooze(completions: [completed])
         XCTAssertEqual(store.tasks[0].deadline, deadline)
         XCTAssertEqual(store.tasks[0].duration, 2400)
     }
     @MainActor func testNewTaskWaitsUntilStartedAndRestores() async throws {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+        let file = try temporaryStateFile()
         var now = Date()
         let store = TimerStore(file: file, clock: { now })
         store.add("等待开始", minutes: 25)

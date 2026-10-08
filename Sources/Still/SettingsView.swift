@@ -5,6 +5,7 @@ struct SettingsView: View {
     @Bindable var store: TimerStore
     var fullscreen: FullscreenMonitor
     var reminders: ReminderController
+    @State private var loginItem = LoginItemController()
     @Environment(\.colorScheme) private var scheme
     private var accent: Color { scheme == .dark ? Color(red: 0.49, green: 0.79, blue: 0.74) : Color(red: 0.16, green: 0.48, blue: 0.44) }
     private var surface: Color { scheme == .dark ? .white.opacity(0.045) : .white.opacity(0.28) }
@@ -20,6 +21,25 @@ struct SettingsView: View {
                     Text("设置").font(.system(size: 14, weight: .semibold))
                     Spacer()
                 }.padding(.top, 2)
+
+                section("启动") {
+                    Toggle("登录时自动启动", isOn: Binding(
+                        get: { loginItem.isRequested },
+                        set: { enabled in Task { await loginItem.setEnabled(enabled) } }
+                    ))
+                    .toggleStyle(.switch)
+                    .font(.system(size: 12))
+                    .tint(accent)
+                    .disabled(loginItem.isUpdating)
+                    hint(loginItem.message)
+                    if let error = loginItem.errorMessage {
+                        Text(error).font(.system(size: 10)).foregroundStyle(.red).fixedSize(horizontal: false, vertical: true)
+                    }
+                    if loginItem.status == .requiresApproval || loginItem.errorMessage != nil {
+                        Button("打开系统登录项设置") { loginItem.openSystemSettings() }
+                            .buttonStyle(SettingsActionStyle(accent: accent))
+                    }
+                }
 
                 section("显示模式") {
                     HStack(spacing: 6) {
@@ -106,11 +126,19 @@ struct SettingsView: View {
             }.padding(.horizontal, 2).padding(.bottom, 8)
         }.frame(height: 470)
             .buttonStyle(HandButtonStyle())
+            .onAppear {
+                loginItem.refresh()
+                fullscreen.refreshPermission()
+                reminders.refreshPermission()
+            }
+            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
+                loginItem.refresh()
+            }
     }
 
     private func reminderTitle(_ level: ReminderLevel) -> String {
         switch level {
-        case .light: "轻提醒 · 菜单栏与通知"
+        case .light: "轻提醒 · 系统通知"
         case .medium: "醒目提醒 · 中央卡片"
         case .strong: "强打断 · 全屏遮罩"
         }

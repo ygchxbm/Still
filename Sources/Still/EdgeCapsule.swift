@@ -49,7 +49,14 @@ import SwiftUI
         }
     }
     func update(screen: NSScreen?) {
-        guard let screen, let task = store.menuTask else { content.resetHover(); panel.orderOut(nil); self.screen = nil; return }
+        guard let screen, let task = store.menuTask else {
+            if self.screen != nil || panel.isVisible {
+                content.resetHover()
+                panel.orderOut(nil)
+            }
+            self.screen = nil
+            return
+        }
         self.screen = screen
         content.task = task; content.palette = store.palette
         // Follow the app appearance preference; automatic mode inherits the system.
@@ -95,9 +102,9 @@ private final class CapsuleContentView: NSView {
     }
     var preferredWidth: CGFloat {
         let timeWidth = (timeText(task?.remaining(at: Date()) ?? 0) as NSString).size(withAttributes: [.font: textFont]).width
-        let nameWidth = expanded ? min(160, ((task?.name ?? "") as NSString).size(withAttributes: [.font: textFont]).width) + 12 : 0
-        return 60 + timeWidth + nameWidth
+        return 60 + timeWidth + (expanded ? nameWidth + 12 : 0)
     }
+    private var nameWidth: CGFloat { min(160, ((task?.name ?? "") as NSString).size(withAttributes: [.font: textFont]).width) }
     override var acceptsFirstResponder: Bool { true }
     override func resetCursorRects() {
         super.resetCursorRects()
@@ -163,28 +170,29 @@ private final class CapsuleContentView: NSView {
     override func accessibilityLabel() -> String? { "\(task?.name ?? "倒计时")，剩余 \(timeText(task?.remaining(at: Date()) ?? 0))，打开任务面板" }
     override func draw(_ dirtyRect: NSRect) {
         guard let task else { return }
+        let now = Date()
+        let time = timeText(task.remaining(at: now)) as NSString
+        let textSize = time.size(withAttributes: [.font: textFont])
         let dark = effectiveAppearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua
         // No painted background: preserve the native glass material.
-        let color = NSColor(dark ? palette.mixed(task.slot, amount: 0.55, base: 0xffffff) : palette.color(task.slot))
+        let color = NSColor(palette.tone(task.slot, dark: dark))
         let center = CGPoint(x: 26, y: bounds.midY)
         let track = NSBezierPath(ovalIn: CGRect(x: 13, y: center.y - 13, width: 26, height: 26))
         track.lineWidth = 3; color.withAlphaComponent(0.18).setStroke(); track.stroke()
-        let progress = task.progress(at: Date())
+        let progress = task.progress(at: now)
         if progress > 0 {
             let arc = NSBezierPath(); arc.lineWidth = 3; arc.lineCapStyle = .round
             arc.appendArc(withCenter: center, radius: 13, startAngle: 90, endAngle: 90 - 360 * progress, clockwise: true)
             color.setStroke(); arc.stroke()
         }
-        let time = timeText(task.remaining(at: Date())) as NSString
-        let textHeight = time.size(withAttributes: [.font: textFont]).height
-        let textY = bounds.midY - textHeight / 2
+        let textY = bounds.midY - textSize.height / 2
         var x: CGFloat = 48
         if expanded {
             let paragraph = NSMutableParagraphStyle(); paragraph.lineBreakMode = .byTruncatingTail
-            let width = preferredWidth - 60 - (timeText(task.remaining(at: Date())) as NSString).size(withAttributes: [.font: textFont]).width - 12
-            (task.name as NSString).draw(in: CGRect(x: x, y: textY, width: width, height: textHeight), withAttributes: [.font: textFont, .foregroundColor: color, .paragraphStyle: paragraph])
+            let width = nameWidth
+            (task.name as NSString).draw(in: CGRect(x: x, y: textY, width: width, height: textSize.height), withAttributes: [.font: textFont, .foregroundColor: color, .paragraphStyle: paragraph])
             x += width + 12
         }
-        (timeText(task.remaining(at: Date())) as NSString).draw(at: CGPoint(x: x, y: textY), withAttributes: [.font: textFont, .foregroundColor: color])
+        time.draw(at: CGPoint(x: x, y: textY), withAttributes: [.font: textFont, .foregroundColor: color])
     }
 }

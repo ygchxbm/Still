@@ -6,13 +6,19 @@ import AppKit
     var trusted = AXIsProcessTrusted()
     @ObservationIgnored private var previousScreen: NSScreen?
 
+    func refreshPermission() {
+        let current = AXIsProcessTrusted()
+        if trusted != current { trusted = current }
+        if !trusted { previousScreen = nil }
+    }
+
     func requestPermission() {
         let options = [kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String: true] as CFDictionary
         trusted = AXIsProcessTrustedWithOptions(options)
     }
 
     func activeScreen() -> NSScreen? {
-        trusted = AXIsProcessTrusted()
+        refreshPermission()
         guard trusted, let app = NSWorkspace.shared.frontmostApplication else { previousScreen = nil; return nil }
         // Opening Still's panel must not dismiss the indicator underneath it.
         if app.processIdentifier == ProcessInfo.processInfo.processIdentifier {
@@ -41,7 +47,7 @@ import AppKit
         return previousScreen
     }
 
-    func spaceChanged() { previousScreen = nil }
+    func invalidateScreen() { previousScreen = nil }
     private func attribute(_ element: AXUIElement, _ name: CFString) -> CFTypeRef? {
         var value: CFTypeRef?
         return AXUIElementCopyAttributeValue(element, name, &value) == .success ? value : nil

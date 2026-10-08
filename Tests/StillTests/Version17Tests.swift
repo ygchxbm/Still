@@ -3,10 +3,7 @@ import XCTest
 
 final class Version17Tests: XCTestCase {
     @MainActor func testOldStateDefaultsToAutomaticAndNewPreferencesRoundTrip() throws {
-        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
-        try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
-        defer { try? FileManager.default.removeItem(at: dir) }
-        let file = dir.appendingPathComponent("state.json")
+        let file = try temporaryStateFile()
         try Data(#"{"version":2,"tasks":[],"palette":"原样","reminder":"轻提醒"}"#.utf8).write(to: file)
         let store = TimerStore(file: file)
         XCTAssertEqual(store.appearanceMode, .auto)
@@ -32,9 +29,8 @@ final class Version17Tests: XCTestCase {
         XCTAssertEqual(clamped.minX, screen.minX + 12)
         XCTAssertEqual(clamped.minY, screen.minY + 12)
     }
-    @MainActor func testCapsuleProgressAndMenuTaskHandoff() {
-        let file = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString).appendingPathComponent("state.json")
-        defer { try? FileManager.default.removeItem(at: file.deletingLastPathComponent()) }
+    @MainActor func testCapsuleProgressAndMenuTaskHandoff() throws {
+        let file = try temporaryStateFile()
         var now = Date(timeIntervalSince1970: 100)
         let store = TimerStore(file: file, clock: { now })
         store.add("一", minutes: 1, startImmediately: true)

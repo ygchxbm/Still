@@ -9,7 +9,7 @@ struct InlineCreateView: View {
     @State private var name = ""
     @State private var duration = "40"
     @FocusState private var focused: Bool
-    private var tone: Color { scheme == .dark ? store.palette.mixed(store.nextColorSlot(), amount: 0.55, base: 0xffffff) : store.palette.color(store.nextColorSlot()) }
+    private var tone: Color { store.palette.tone(store.nextColorSlot(), dark: scheme == .dark) }
     private var minutes: Double? { Double(duration.trimmingCharacters(in: .whitespacesAndNewlines)) }
     private var valid: Bool { if let m = minutes { return m.isFinite && m >= 1.0/60 && m <= 1440 }; return false }
     private func submit() { guard valid, let minutes else { return }; confirm(name.trimmingCharacters(in: .whitespacesAndNewlines), minutes) }

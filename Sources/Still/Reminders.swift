@@ -4,6 +4,8 @@ import UserNotifications
 
 @MainActor @Observable final class ReminderController: NSObject, UNUserNotificationCenterDelegate {
     var permissionText = "通知权限尚未检查"
+    private(set) var authorizationStatus: UNAuthorizationStatus = .notDetermined
+    var permissionActionTitle: String { authorizationStatus == .notDetermined ? "允许通知" : "打开通知设置" }
     private var queue = ReminderQueue()
     private var windows: [ReminderPanel] = []
     private let store: TimerStore
@@ -19,19 +21,29 @@ import UserNotifications
     func refreshPermission() {
         Task {
             let settings = await UNUserNotificationCenter.current().notificationSettings()
+            authorizationStatus = settings.authorizationStatus
             switch settings.authorizationStatus {
             case .authorized, .provisional, .ephemeral: permissionText = "系统通知已允许 · 无声音"
-            case .denied: permissionText = "系统通知未允许，轻提醒将无法显示"
-            case .notDetermined: permissionText = "尚未授权，点击下方允许系统通知"
+            case .denied: permissionText = "通知未开启，轻提醒无法显示。请在系统设置中允许留白发送通知。"
+            case .notDetermined: permissionText = "尚未允许通知，点击“允许通知”开启轻提醒。"
             @unknown default: permissionText = "通知权限未知"
+            }
+        }
+    }
+    func managePermission() {
+        if authorizationStatus == .notDetermined {
+            requestPermission()
+        } else if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension") {
+            if !NSWorkspace.shared.open(url) {
+                permissionText = "无法打开通知设置，请前往系统设置 → 通知 → 留白。"
             }
         }
     }
     func requestPermission() {
         Task {
             do {
-                let allowed = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert])
-                permissionText = allowed ? "系统通知已允许 · 无声音" : "系统通知未允许，轻提醒将无法显示"
+                _ = try await UNUserNotificationCenter.current().requestAuthorization(options: [.alert])
+                refreshPermission()
             } catch { permissionText = "通知不可用：" + error.localizedDescription }
         }
     }
@@ -52,7 +64,7 @@ import UserNotifications
     private func notify(_ event: ReminderEvent) {
         let content = UNMutableNotificationContent()
         content.title = event.recovery ? "离开期间的倒计时已完成" : event.preview ? "留白 · 提醒预览" : "留白 · 时间到了"
-        content.body = event.tasks.map(\.name).joined(separator: "、") + "。起来走走，或回到下一段专注。"
+        content.body = event.tasks.map(\.name).joined(separator: "、") + "。时间到了，按自己的节奏继续。"
         content.sound = nil
         Task {
             do { try await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)) }
@@ -115,14 +127,14 @@ struct ReminderView: View {
             if strong { Rectangle().fill(.ultraThinMaterial).overlay(tone.opacity(0.16)).ignoresSafeArea() }
             VStack(spacing: 20) {
                 Text(event.preview ? "提醒效果预览" : "倒计时完成").font(.caption).foregroundStyle(tone)
-                Image(systemName: "figure.walk").font(.system(size: 44, weight: .light)).foregroundStyle(tone)
-                Text(event.tasks.first?.name.contains("休息") == true ? "休息结束，回到节奏。" : "做得很好，起来走走。").font(.system(size: 23, weight: .semibold))
+                Image(systemName: "timer").font(.system(size: 44, weight: .light)).foregroundStyle(tone)
+                Text("时间到了，按自己的节奏继续。").font(.system(size: 23, weight: .semibold)).multilineTextAlignment(.center)
                 ScrollView { Text(event.tasks.map(\.name).joined(separator: " · ")).multilineTextAlignment(.center).frame(maxWidth: .infinity) }.frame(maxHeight: 45)
                 HStack(spacing: 16) {
                     if !event.preview { Button("再加 5 分钟", action: snooze) }
-                    Button(event.preview ? "结束预览" : "知道了，完成", action: done).buttonStyle(.borderedProminent).tint(tone)
+                    Button(event.preview ? "结束预览" : "知道了", action: done).buttonStyle(.borderedProminent).tint(tone)
                 }
-                Text("按 Esc 可退出 · 无声音").font(.caption2).foregroundStyle(.secondary)
+                Text(event.preview ? "按 Esc 结束预览 · 无声音" : "按 Esc 关闭提醒 · 无声音").font(.caption2).foregroundStyle(.secondary)
             }.padding(28).frame(width: 430).background(.regularMaterial, in: RoundedRectangle(cornerRadius: 24)).overlay { RoundedRectangle(cornerRadius: 24).stroke(tone.opacity(0.25)) }
         }.frame(maxWidth: .infinity, maxHeight: .infinity)
     }

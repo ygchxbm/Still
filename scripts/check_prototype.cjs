@@ -20,7 +20,7 @@ assert.match(final,/reminder:\s*["']light["']/);assert.match(final,/level:\s*t.r
 console.log(version+': all HTML scripts parse; menu selection scenarios pass; finalized entry checks pass. Browser acceptance remains separate.');
 const eventBlock=final.match(/\$\("#timers"\)\.onclick = e => \{[\s\S]*?\n\};/)[0];
 const area={};ctx.$=()=>area;ctx.render=()=>{};ctx.tick=()=>{};ctx.showAlert=()=>{};ctx.alerts=[];
-if (version === 'v1.8') {
+if (['v1.8', 'v1.9'].includes(version)) {
  for (const name of ['restoreOriginalDuration','addFiveMinutes']) {
   vm.runInContext(final.match(new RegExp('function '+name+'\\(t\\) \\{[\\s\\S]*?\\n\\}'))[0],ctx);
  }
@@ -107,4 +107,35 @@ if (version === 'v1.8') {
  assert.match(final,/stroke="currentColor"/);assert.match(final,/if \(!t\) .*idleCatIcon\(\)/);
  for (const name of [`留白-${version}-方案存档.html`,'版本迭代.md']) assert(fs.existsSync(path.join(folder,name)));
  console.log('v1.8: independent extension, repeat extension, original duration restoration, idle icon and review cleanup checks pass.');
+}
+
+if (version === 'v1.9') {
+ assert(!/copyReview|revised\(|comparisonPanel|comparisonGroups|copy-review|data-copy-|reviewStorageKey|simulatedStorageProblem|previewParameters/.test(final), 'Review code or forced preview state remains');
+ assert(!/still-draft-prototype|still-archive-prototype|时间已冻结|已专注|知道了，完成|色位|灵感 II|菜单栏与通知/.test(final), 'Unselected copy or storage key remains');
+ assert.match(final,/still-final-prototype-v1\.9/);
+ assert(!/extension-actions|data-action="plus"|action === "plus"/.test(final));
+ for (const name of [`留白-${version}-方案存档.html`,'版本迭代.md']) assert(fs.existsSync(path.join(folder,name)));
+ assert(!fs.existsSync(path.join(folder,`留白-${version}-未定稿.html`)));
+ const format=final.match(/function formatDuration\(ms\) \{[\s\S]*?\n\}/)[0];
+ vm.runInContext(format,ctx);
+ for (const [ms, expected] of [[1000,'1 秒'],[30000,'30 秒'],[90000,'1 分 30 秒'],[1500000,'25 分钟'],[86400000,'1440 分钟']]) assert.equal(ctx.formatDuration(ms),expected);
+ vm.runInContext(final.match(/function formatTaskDuration\(task\) \{[\s\S]*?\n\}/)[0],ctx);
+ assert.equal(ctx.formatTaskDuration({extensionStage:true,originalTotal:90000,total:300000}),'原定 1 分 30 秒 · 加时 5 分钟');
+ const notice={};
+ const storage={storageProblem:null,storageWritable:true,localStorage:{writes:[],setItem(key,value){this.writes.push([key,value]);}},key:'test-final',timers:[],prefs:{},document:{querySelector:()=>notice}};
+ vm.createContext(storage);
+ vm.runInContext(final.match(/function updateStorageNotice\(\) \{[\s\S]*?\n\}/)[0],storage);
+ storage.updateStorageNotice();assert.equal(notice.hidden,true);
+ storage.storageProblem='unreadable';storage.storageWritable=false;storage.updateStorageNotice();
+ assert.equal(notice.hidden,false);assert(notice.textContent.includes('本次更改暂时无法保存'));
+ vm.runInContext(final.match(/function save\(\) \{[\s\S]*?\n\}/)[0],storage);
+ storage.save();assert.equal(storage.localStorage.writes.length,0,'Unreadable data must not be overwritten');
+ storage.storageProblem=null;storage.storageWritable=true;storage.save();assert.equal(storage.localStorage.writes.length,1);
+ const task={id:'extension',state:'done',total:1500000,remaining:0,left:0};
+ ctx.addFiveMinutes(task);assert.equal(task.originalTotal,1500000);assert.equal(task.total,300000);assert.equal(task.remaining,300000);
+ ctx.restoreOriginalDuration(task);assert.equal(task.total,1500000);assert.equal(task.extensionStage,undefined);
+ const archive=fs.readFileSync(path.join(folder,`留白-${version}-方案存档.html`),'utf8');
+ assert.match(archive,/1:B、2:B、3:B、4:B、5:B、6:B/);
+ assert.match(archive,/still-archive-prototype-v1\.9/);
+ console.log('v1.9: accepted copy, precise durations, normal/error storage states, overwrite protection, independent extension, archive and cleanup checks pass.');
 }

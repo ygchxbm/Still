@@ -48,7 +48,7 @@ import Observation
             }
         } catch {
             writable = false
-            storageError = "无法读取保存数据，原文件已保留。请检查：" + file.path
+            storageError = "无法读取已保存的数据，原文件已保留。本次更改暂时无法保存。文件位置：" + file.path
         }
         menuTaskID = selection(for: tasks, at: clock())
         loading = false

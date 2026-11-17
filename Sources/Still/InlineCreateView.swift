@@ -21,7 +21,7 @@ struct InlineCreateView: View {
             }
             Divider().overlay(tone.opacity(0.12))
             VStack(alignment: .leading, spacing: 7) {
-                Text("01 / 任务名称").font(.system(size: 10)).foregroundStyle(Palette.muted)
+                Text("01 / 任务名称（可选）").font(.system(size: 10)).foregroundStyle(Palette.muted)
                 TextField("这段时间，想做什么？", text: $name)
                     .textFieldStyle(.plain).font(.system(size: 12)).foregroundStyle(tone)
                     .padding(10).background(control, in: RoundedRectangle(cornerRadius: 9))
@@ -44,9 +44,9 @@ struct InlineCreateView: View {
                     }.accessibilityLabel("\(n) 分钟")
                 }
             }.foregroundStyle(tone)
-            if !valid { Text("请输入 1 秒至 1440 分钟之间的时长。").font(.system(size: 10)).foregroundStyle(.red) }
+            if !valid { Text("请以分钟输入，支持小数；最短 1 秒，最长 24 小时。").font(.system(size: 10)).foregroundStyle(.red) }
             Divider()
-            Text("◷ 轻提醒\n可在任务工具区调整提醒强度 · 无声音").font(.system(size: 9)).lineSpacing(4).foregroundStyle(Palette.muted)
+            Text("◷ 轻提醒\n点击任务卡上的铃铛可切换提醒强度 · 无声音").font(.system(size: 9)).lineSpacing(4).foregroundStyle(Palette.muted)
             HStack(spacing: 8) {
                 Button("取消新建", action: cancel).font(.system(size: 11)).padding(11).background(control, in: RoundedRectangle(cornerRadius: 11))
                 Button(action: submit) {

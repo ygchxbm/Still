@@ -61,6 +61,8 @@ struct CardView: View {
     var body: some View {
         TimelineView(.animation(minimumInterval: 1, paused: task.deadline == nil)) { context in
             let left = task.remaining(at: context.date)
+            let durationSummary = task.originalDuration.map { "原定 \(durationText($0)) · 加时 \(durationText(task.duration))" } ?? "共 \(durationText(task.duration))"
+            let elapsed = left == 0 ? "计时结束" : task.deadline == nil ? (task.frozen == task.duration ? "点击开始计时" : "计时已暂停") : (task.isExtension ? "已加时 " : "已计时 ") + timeText(task.duration-left)
             VStack(alignment: .leading, spacing: 12) {
                 HStack(alignment: .top) {
                     VStack(alignment: .leading, spacing: 5) { Text(task.name).font(.system(size: 13,weight: .semibold)).lineLimit(1); Text((task.isExtension ? (left == 0 ? "加时完成" : task.deadline == nil ? "加时已暂停" : "加时中") : (left == 0 ? "已完成" : task.deadline == nil ? (task.frozen == task.duration ? "待开始" : "已暂停") : "正在计时")) + (store.menuTaskID == task.id ? " · 菜单栏" : "")).font(.system(size: 9)).foregroundStyle(tone) }
@@ -83,9 +85,14 @@ struct CardView: View {
                         ctx.fill(Path(roundedRect: CGRect(x: x,y: 0,width: width,height: 18),cornerRadius: 2),with: .color(tone))
                     }
                 }.frame(height: 18)
-                HStack { Text(task.originalDuration.map { "原定 \(Int($0/60)) · 加时 \(Int(task.duration/60)) 分钟" } ?? "共 \(Int(task.duration/60)) 分钟"); Spacer(); Text(left == 0 ? "计时结束" : task.deadline == nil ? (task.frozen == task.duration ? "点击开始计时" : "时间已冻结") : (task.isExtension ? "已加时 " : "已专注 ") + timeText(task.duration-left)) }.font(.system(size: 9)).foregroundStyle(tone)
+                ViewThatFits(in: .horizontal) {
+                    HStack { Text(durationSummary).fixedSize(); Spacer(minLength: 8); Text(elapsed).fixedSize() }
+                    VStack(alignment: .leading, spacing: 4) { Text(durationSummary); Text(elapsed) }
+                        .fixedSize(horizontal: false, vertical: true)
+                }.frame(maxWidth: .infinity, alignment: .leading).font(.system(size: 9)).foregroundStyle(tone)
                 HStack { Spacer(); HStack(spacing: 0) {
-                    Button { store.toggle(task.id) } label: { Label(left == 0 ? "再来" : task.deadline == nil ? (task.frozen == task.duration ? "开始" : "继续") : "暂停", systemImage: task.deadline == nil || left == 0 ? "play.fill" : "pause.fill").font(.system(size: 10)).padding(.horizontal, 15).padding(.vertical, 9).background(tone,in: Capsule()).foregroundStyle(.white) }
+                    Button { store.toggle(task.id) } label: { Label(left == 0 ? "再来一次" : task.deadline == nil ? (task.frozen == task.duration ? "开始" : "继续") : "暂停", systemImage: task.deadline == nil || left == 0 ? "play.fill" : "pause.fill").font(.system(size: 10)).padding(.horizontal, 15).padding(.vertical, 9).background(tone,in: Capsule()).foregroundStyle(.white) }
+                        .help(left == 0 ? "按原定时长 \(durationText(task.originalDuration ?? task.duration)) 重新开始计时" : task.deadline == nil ? (task.frozen == task.duration ? "开始计时" : "继续计时") : "暂停计时")
                     Button { store.reset(task.id) } label: { Label("重置",systemImage: "arrow.counterclockwise").font(.system(size: 10)).padding(.horizontal, 10).foregroundStyle(tone) }
                 }.buttonStyle(HandButtonStyle()).padding(3).background(tone.opacity(0.1),in: Capsule()) }
             }.padding(12)

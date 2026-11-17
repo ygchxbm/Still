@@ -27,7 +27,7 @@ import Observation
         switch status {
         case .enabled: "已开启，登录后在菜单栏后台运行。"
         case .requiresApproval: "需要在系统设置中允许留白登录时启动。"
-        case .notRegistered: "登录后在菜单栏后台运行，不自动打开任务面板。"
+        case .notRegistered: "开启后，登录时自动在菜单栏运行，不打开任务面板。"
         case .notFound: "无法找到登录项，请从完整的留白应用中设置。"
         @unknown default: "无法确定登录项状态，请检查系统设置。"
         }

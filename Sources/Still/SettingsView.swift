@@ -56,13 +56,13 @@ struct SettingsView: View {
                 }
 
                 section("外观配色") {
-                    hint("每套五色；任务的色位保持不变。")
+                    hint("每套配色包含五种颜色，切换后任务使用对应的新颜色。")
                     VStack(spacing: 4) {
                         ForEach(Palette.allCases, id: \.self) { palette in
                             let selected = store.palette == palette
                             Button { store.palette = palette } label: {
                                 HStack {
-                                    Text(palette.rawValue).font(.system(size: 12, weight: selected ? .medium : .regular))
+                                    Text(palette.title).font(.system(size: 12, weight: selected ? .medium : .regular))
                                     Spacer(minLength: 8)
                                     HStack(spacing: 6) {
                                         ForEach(0..<5) { slot in
@@ -71,7 +71,7 @@ struct SettingsView: View {
                                     }.accessibilityHidden(true)
                                 }.padding(.horizontal, 12).frame(height: 42)
                                     .modifier(SettingsControlSurface(accent: accent, selected: selected, row: true))
-                            }.accessibilityLabel(palette.rawValue).accessibilityAddTraits(selected ? [.isSelected] : [])
+                            }.accessibilityLabel(palette.title).accessibilityAddTraits(selected ? [.isSelected] : [])
                         }
                     }.padding(4).background(surface, in: RoundedRectangle(cornerRadius: 14))
                 }
@@ -106,16 +106,16 @@ struct SettingsView: View {
                     Rectangle().fill(line).frame(height: 1).padding(.bottom, 5)
                     HStack(spacing: 8) {
                         Button { fullscreen.requestPermission() } label: {
-                            Label("全屏胶囊", systemImage: "capsule")
+                            Label(fullscreen.trusted ? "辅助功能已授权" : "授权辅助功能", systemImage: "capsule")
                         }.buttonStyle(SettingsActionStyle(accent: accent))
                             .disabled(fullscreen.trusted)
-                            .help(fullscreen.trusted ? "已授权，全屏且有运行任务时自动显示" : "授权辅助功能以启用全屏胶囊")
-                        Button { reminders.requestPermission() } label: {
-                            Label("通知授权", systemImage: "bell.badge")
+                            .help("用于在全屏时显示倒计时胶囊")
+                        Button { reminders.managePermission() } label: {
+                            Label(reminders.permissionActionTitle, systemImage: "bell.badge")
                         }.buttonStyle(SettingsActionStyle(accent: accent))
                     }
-                    hint(fullscreen.trusted ? "全屏胶囊已授权" : "全屏胶囊需要辅助功能授权")
-                    hint(reminders.permissionText.replacingOccurrences(of: "点击下方允许系统通知", with: "点击“通知授权”开启"))
+                    hint(fullscreen.trusted ? "已获得辅助功能权限，全屏计时时显示倒计时胶囊。" : "允许辅助功能权限后，可在全屏时显示倒计时胶囊。")
+                    hint(reminders.permissionText)
                     Button { NSApp.terminate(nil) } label: {
                         Label("退出留白", systemImage: "power").frame(maxWidth: .infinity)
                     }.buttonStyle(SettingsActionStyle(accent: accent, destructive: true))

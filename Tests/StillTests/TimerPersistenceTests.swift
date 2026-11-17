@@ -197,4 +197,32 @@ final class TimerPersistenceTests: XCTestCase {
         XCTAssertEqual(timeText(60 * 2_000_000_000), "2000000000:00")
         XCTAssertEqual(timeText(Double.greatestFiniteMagnitude), timeText(Countdown.maximumRemaining))
     }
+
+    func testDurationTextPreservesSubminuteAndFractionalMinuteDurations() {
+        XCTAssertEqual(durationText(1), "1 秒")
+        XCTAssertEqual(durationText(30), "30 秒")
+        XCTAssertEqual(durationText(60), "1 分钟")
+        XCTAssertEqual(durationText(90), "1 分 30 秒")
+        XCTAssertEqual(durationText(1500), "25 分钟")
+        XCTAssertEqual(durationText(86400), "1440 分钟")
+        XCTAssertEqual(durationText(59.1), "1 分钟")
+        XCTAssertEqual(durationText(0), "0 秒")
+        XCTAssertEqual(durationText(.nan), "0 秒")
+    }
+
+    @MainActor func testRenamedPalettesPreserveLegacyFilesAndPersistedValues() throws {
+        for palette in Palette.allCases {
+            let file = try temporaryStateFile()
+            let state = SavedState(tasks: [], palette: palette, reminder: "轻提醒")
+            try JSONEncoder().encode(state).write(to: file)
+            let restored = TimerStore(file: file)
+            XCTAssertNil(restored.storageError)
+            XCTAssertEqual(restored.palette, palette)
+            XCTAssertNotEqual(restored.palette.title, palette.rawValue)
+            restored.add("保留任务", minutes: 0.5)
+            let saved = try JSONDecoder().decode(SavedState.self, from: Data(contentsOf: file))
+            XCTAssertEqual(saved.palette.rawValue, palette.rawValue)
+            XCTAssertEqual(saved.tasks.first?.duration, 30)
+        }
+    }
 }

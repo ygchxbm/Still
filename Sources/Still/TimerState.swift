@@ -37,6 +37,14 @@ struct Countdown: Identifiable, Codable, Equatable {
 
 enum Palette: String, CaseIterable, Codable {
     case original = "原样", apple = "苹果灵感 II", google = "谷歌灵感 II"
+    // Keep the persisted raw values compatible with existing task files.
+    var title: String {
+        switch self {
+        case .original: "留白原色"
+        case .apple: "苹果灵感"
+        case .google: "谷歌灵感"
+        }
+    }
     var hex: [UInt32] {
         switch self {
         case .original: [0x25877f,0x8765bd,0x327db4,0xb26079,0x8b782a]
@@ -77,6 +85,16 @@ struct SavedState: Codable {
             throw CocoaError(.fileReadCorruptFile)
         }
     }
+}
+
+func durationText(_ seconds: TimeInterval) -> String {
+    guard seconds.isFinite, seconds > 0 else { return "0 秒" }
+    let value = Int(ceil(min(seconds, Countdown.maximumRemaining)))
+    let minutes = value / 60
+    let remainder = value % 60
+    if minutes == 0 { return "\(remainder) 秒" }
+    if remainder == 0 { return "\(minutes) 分钟" }
+    return "\(minutes) 分 \(remainder) 秒"
 }
 
 func timeText(_ seconds: TimeInterval) -> String {

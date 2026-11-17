@@ -29,6 +29,8 @@ import SwiftUI
         item = NSStatusBar.system.statusItem(withLength: 62)
         item.button?.target = self; item.button?.action = #selector(statusClicked)
         item.button?.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        // Describe the entry point for assistive technology without registering a tooltip.
+        item.button?.setAccessibilityLabel("留白，打开倒计时")
         panel.hidesOnDeactivate = false
         panel.collectionBehavior = [.moveToActiveSpace, .fullScreenAuxiliary, .canJoinAllApplications]
         panel.isOpaque = false
@@ -193,7 +195,6 @@ import SwiftUI
         capsule.update(screen: task == nil ? nil : fullscreen.activeScreen())
         if panel.isVisible { resizeVisiblePanel() }
         guard let button = item.button else { return }
-        button.toolTip = "留白 · 点击打开倒计时"
         guard let task else {
             item.length = 28
             button.image = MenuBarCat.image

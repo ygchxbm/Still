@@ -67,6 +67,13 @@ import SwiftUI
             let task = self.store.tasks.first ?? Countdown(name: "专注工作", duration: 2400, frozen: 0, slot: 0)
             self.reminders.receive([task], preview: true)
         }
+        store.previewDraftReminder = { [weak self] name, message, slot in
+            guard let self else { return }
+            let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let task = Countdown(name: trimmedName.isEmpty ? "新的倒计时" : String(trimmedName.prefix(40)), duration: 60, frozen: 60, slot: slot,
+                                 completionMessage: CompletionMessage.normalized(message))
+            self.reminders.receive([task], preview: true, previewLevel: .medium)
+        }
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(willSleep), name: NSWorkspace.willSleepNotification, object: nil)
         NSWorkspace.shared.notificationCenter.addObserver(self, selector: #selector(woke), name: NSWorkspace.didWakeNotification, object: nil)
         observeStoreChanges()

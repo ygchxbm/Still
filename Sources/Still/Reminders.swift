@@ -47,9 +47,9 @@ import UserNotifications
             } catch { permissionText = "通知不可用：" + error.localizedDescription }
         }
     }
-    func receive(_ tasks: [Countdown], recovery: Bool = false, preview: Bool = false) {
+    func receive(_ tasks: [Countdown], recovery: Bool = false, preview: Bool = false, previewLevel: ReminderLevel? = nil) {
         guard !tasks.isEmpty else { return }
-        for event in Self.events(for: tasks, recovery: recovery, preview: preview, previewLevel: store.previewLevel) {
+        for event in Self.events(for: tasks, recovery: recovery, preview: preview, previewLevel: previewLevel?.rawValue ?? store.previewLevel) {
             if event.level == "轻提醒" {
                 notify(event)
             } else { queue.append(event) }
@@ -61,11 +61,15 @@ import UserNotifications
         if recovery || preview { return [ReminderEvent(tasks: tasks, level: recovery ? "轻提醒" : previewLevel, recovery: recovery, preview: preview)] }
         return tasks.map { ReminderEvent(tasks: [$0], level: $0.intensity.rawValue, recovery: false, preview: false) }
     }
-    private func notify(_ event: ReminderEvent) {
+    static func notificationContent(for event: ReminderEvent) -> UNMutableNotificationContent {
         let content = UNMutableNotificationContent()
         content.title = event.recovery ? "离开期间的倒计时已完成" : event.preview ? "留白 · 提醒预览" : "留白 · 时间到了"
-        content.body = event.tasks.map(\.name).joined(separator: "、") + "。时间到了，按自己的节奏继续。"
+        content.body = event.tasks.map(\.name).joined(separator: "、") + "。" + event.completionText
         content.sound = nil
+        return content
+    }
+    private func notify(_ event: ReminderEvent) {
+        let content = Self.notificationContent(for: event)
         Task {
             do { try await UNUserNotificationCenter.current().add(UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: nil)) }
             catch { permissionText = "通知发送失败：" + error.localizedDescription }
@@ -85,7 +89,11 @@ import UserNotifications
             w.hasShadow = !strong
             w.contentView = NSHostingView(rootView: ReminderView(event: event, tone: store.palette.color(event.tasks[0].slot), strong: strong, done: { [weak self] in self?.finish(eventID: event.id, snooze: false) }, snooze: { [weak self] in self?.finish(eventID: event.id, snooze: true) }))
             if strong { w.setFrame(screen.frame, display: true) }
-            else { let f = screen.visibleFrame; w.setFrame(NSRect(x: f.midX-220, y: f.midY-170, width: 440, height: 340), display: true) }
+            else {
+                let f = screen.visibleFrame
+                let height: CGFloat = min(f.height, event.hasLongMessage ? 560 : 340)
+                w.setFrame(NSRect(x: f.midX-220, y: f.midY-height/2, width: 440, height: height), display: true)
+            }
             windows.append(w); w.orderFrontRegardless()
         }
         NSApp.activate(ignoringOtherApps: true)
@@ -128,7 +136,14 @@ struct ReminderView: View {
             VStack(spacing: 20) {
                 Text(event.preview ? "提醒效果预览" : "倒计时完成").font(.caption).foregroundStyle(tone)
                 Image(systemName: "timer").font(.system(size: 44, weight: .light)).foregroundStyle(tone)
-                Text("时间到了，按自己的节奏继续。").font(.system(size: 23, weight: .semibold)).multilineTextAlignment(.center)
+                if event.hasLongMessage {
+                    ScrollView {
+                        Text(event.completionText).font(.system(size: 20, weight: .semibold))
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                    }.frame(height: 140)
+                } else {
+                    Text(event.completionText).font(.system(size: 23, weight: .semibold)).multilineTextAlignment(.center)
+                }
                 ScrollView { Text(event.tasks.map(\.name).joined(separator: " · ")).multilineTextAlignment(.center).frame(maxWidth: .infinity) }.frame(maxHeight: 45)
                 HStack(spacing: 16) {
                     if !event.preview { Button("再加 5 分钟", action: snooze) }

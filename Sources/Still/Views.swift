@@ -10,12 +10,20 @@ struct PanelView: View {
     var body: some View {
         VStack(spacing: 14) {
             HStack {
-                VStack(alignment: .leading, spacing: 5) {
-                    HStack { Text("留白").font(.system(size: 19, weight: .semibold)); Text("STILL").font(.system(size: 8)).tracking(3).foregroundStyle(.secondary) }
-                    Text("\(store.tasks.filter {$0.deadline != nil}.count) 个正在计时 · \(store.tasks.count) 个倒计时").font(.system(size: 10)).foregroundStyle(.secondary)
+                if store.settingsPresented {
+                    Button { store.settingsPresented = false } label: {
+                        Image(systemName: "chevron.left").frame(width: 28, height: 28)
+                            .background(Color.primary.opacity(0.06), in: Circle())
+                    }.help("返回倒计时").accessibilityLabel("返回倒计时")
+                    Text("设置").font(.system(size: 17, weight: .semibold)).frame(maxWidth: .infinity)
+                } else {
+                    VStack(alignment: .leading, spacing: 5) {
+                        HStack { Text("留白").font(.system(size: 19, weight: .semibold)); Text("STILL").font(.system(size: 8)).tracking(3).foregroundStyle(.secondary) }
+                        Text("\(store.tasks.filter {$0.deadline != nil}.count) 个正在计时 · \(store.tasks.count) 个倒计时").font(.system(size: 10)).foregroundStyle(.secondary)
+                    }
+                    Spacer()
+                    if !creating { Button { store.settingsPresented = true } label: { Image(systemName: "gearshape").frame(width: 28,height: 28) }.help("设置") }
                 }
-                Spacer()
-                if !store.settingsPresented && !creating { Button { store.settingsPresented = true } label: { Image(systemName: "gearshape").frame(width: 28,height: 28) }.help("设置") }
                 Button(action: close) { Image(systemName: "xmark").font(.system(size: 12, weight: .medium)).frame(width: 28,height: 28) }.help("收起面板")
             }.buttonStyle(HandButtonStyle())
 
@@ -28,8 +36,8 @@ struct PanelView: View {
                         VStack(spacing: 10) {
                             ForEach(store.tasks) { task in CardView(store: store, task: task, sorting: sorting).id(task.id) }
                             if creating {
-                                InlineCreateView(store: store, cancel: { creating = false }, confirm: { name, minutes in
-                                    store.add(name, minutes: minutes)
+                                InlineCreateView(store: store, cancel: { creating = false }, confirm: { name, minutes, message in
+                                    store.add(name, minutes: minutes, completionMessage: message)
                                     creating = false
                                     if let id = store.tasks.last?.id { DispatchQueue.main.async { proxy.scrollTo(id, anchor: .bottom) } }
                                 }).id("creation")
@@ -37,7 +45,7 @@ struct PanelView: View {
                                 Text("留一段时间，做一件事。").foregroundStyle(.secondary).padding(30)
                             }
                         }
-                    }.frame(height: min(470, max(120, CGFloat(store.tasks.count) * 230 + (creating ? 340 : 0))))
+                    }.frame(height: min(creating ? min(620, (NSScreen.main?.visibleFrame.height ?? 800) - 180) : 470, max(120, CGFloat(store.tasks.count) * 230 + (creating ? 560 : 0))))
                     .onChange(of: creating) { _, open in
                         if open { DispatchQueue.main.async { proxy.scrollTo("creation", anchor: .bottom) } }
                     }

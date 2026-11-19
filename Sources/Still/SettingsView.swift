@@ -6,6 +6,7 @@ struct SettingsView: View {
     var fullscreen: FullscreenMonitor
     var reminders: ReminderController
     @State private var loginItem = LoginItemController()
+    @State private var permissionGuideExpanded = false
     @Environment(\.colorScheme) private var scheme
     private var accent: Color { scheme == .dark ? Color(red: 0.49, green: 0.79, blue: 0.74) : Color(red: 0.16, green: 0.48, blue: 0.44) }
     private var surface: Color { scheme == .dark ? .white.opacity(0.045) : .white.opacity(0.28) }
@@ -14,14 +15,6 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 22) {
-                HStack(spacing: 16) {
-                    Button { store.settingsPresented = false } label: {
-                        Label("返回", systemImage: "chevron.left").font(.system(size: 11, weight: .medium))
-                    }.foregroundStyle(.secondary).accessibilityLabel("返回倒计时")
-                    Text("设置").font(.system(size: 14, weight: .semibold))
-                    Spacer()
-                }.padding(.top, 2)
-
                 section("启动") {
                     Toggle("登录时自动启动", isOn: Binding(
                         get: { loginItem.isRequested },
@@ -105,16 +98,27 @@ struct SettingsView: View {
                 VStack(alignment: .leading, spacing: 9) {
                     Rectangle().fill(line).frame(height: 1).padding(.bottom, 5)
                     HStack(spacing: 8) {
-                        Button { fullscreen.requestPermission() } label: {
-                            Label(fullscreen.trusted ? "辅助功能已授权" : "授权辅助功能", systemImage: "capsule")
+                        Button {
+                            permissionGuideExpanded = true
+                            fullscreen.permission.openSettings()
+                        } label: {
+                            Label(fullscreen.permission.actionTitle, systemImage: "capsule")
                         }.buttonStyle(SettingsActionStyle(accent: accent))
-                            .disabled(fullscreen.trusted)
                             .help("用于在全屏时显示倒计时胶囊")
                         Button { reminders.managePermission() } label: {
                             Label(reminders.permissionActionTitle, systemImage: "bell.badge")
                         }.buttonStyle(SettingsActionStyle(accent: accent))
                     }
-                    hint(fullscreen.trusted ? "已获得辅助功能权限，全屏计时时显示倒计时胶囊。" : "允许辅助功能权限后，可在全屏时显示倒计时胶囊。")
+                    hint(fullscreen.permission.statusText)
+                    if let message = fullscreen.permission.settingsMessage { hint(message) }
+                    DisclosureGroup("胶囊权限设置步骤", isExpanded: $permissionGuideExpanded) {
+                        VStack(alignment: .leading, spacing: 9) {
+                            hint(fullscreen.permission.instructions)
+                            Button("在访达中显示留白") { fullscreen.permission.revealApplication() }
+                                .buttonStyle(SettingsActionStyle(accent: accent))
+                            hint(fullscreen.permission.purposeText)
+                        }.padding(.top, 7)
+                    }.font(.system(size: 10)).tint(accent)
                     hint(reminders.permissionText)
                     Button { NSApp.terminate(nil) } label: {
                         Label("退出留白", systemImage: "power").frame(maxWidth: .infinity)
@@ -133,6 +137,8 @@ struct SettingsView: View {
             }
             .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
                 loginItem.refresh()
+                fullscreen.refreshPermission()
+                reminders.refreshPermission()
             }
     }
 

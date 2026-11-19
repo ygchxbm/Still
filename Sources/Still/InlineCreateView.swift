@@ -5,14 +5,15 @@ struct InlineCreateView: View {
     private var control: Color { scheme == .dark ? Color.white.opacity(0.07) : Color.white.opacity(0.5) }
     var store: TimerStore
     let cancel: () -> Void
-    let confirm: (String, Double) -> Void
+    let confirm: (String, Double, String) -> Void
     @State private var name = ""
     @State private var duration = "40"
+    @State private var completionMessage = CompletionMessage.defaultText
     @FocusState private var focused: Bool
     private var tone: Color { store.palette.tone(store.nextColorSlot(), dark: scheme == .dark) }
     private var minutes: Double? { Double(duration.trimmingCharacters(in: .whitespacesAndNewlines)) }
     private var valid: Bool { if let m = minutes { return m.isFinite && m >= 1.0/60 && m <= 1440 }; return false }
-    private func submit() { guard valid, let minutes else { return }; confirm(name.trimmingCharacters(in: .whitespacesAndNewlines), minutes) }
+    private func submit() { guard valid, let minutes else { return }; confirm(name.trimmingCharacters(in: .whitespacesAndNewlines), minutes, CompletionMessage.normalized(completionMessage)) }
     var body: some View {
         VStack(alignment: .leading, spacing: 13) {
             VStack(alignment: .leading, spacing: 5) {
@@ -45,6 +46,29 @@ struct InlineCreateView: View {
                 }
             }.foregroundStyle(tone)
             if !valid { Text("请以分钟输入，支持小数；最短 1 秒，最长 24 小时。").font(.system(size: 10)).foregroundStyle(.red) }
+            Divider()
+            VStack(alignment: .leading, spacing: 7) {
+                Text("03 / 到期提示（可选）").font(.system(size: 10)).foregroundStyle(Palette.muted)
+                TextEditor(text: $completionMessage)
+                    .font(.system(size: 12)).scrollContentBackground(.hidden)
+                    .padding(7).frame(height: 78)
+                    .background(control, in: RoundedRectangle(cornerRadius: 9))
+                    .accessibilityLabel("到期提示")
+                    .onChange(of: completionMessage) { _, value in
+                        let limited = CompletionMessage.limited(value)
+                        if value != limited { completionMessage = limited }
+                    }
+                HStack {
+                    Text("留空使用默认提示。")
+                    Spacer()
+                    Text("\(completionMessage.utf16.count) / 80").monospacedDigit()
+                }.font(.system(size: 9)).foregroundStyle(Palette.muted)
+                HStack {
+                    Button("恢复默认") { completionMessage = CompletionMessage.defaultText }
+                    Spacer()
+                    Button("预览提示 ↗") { store.previewDraftReminder?(name, CompletionMessage.normalized(completionMessage), store.nextColorSlot()) }
+                }.font(.system(size: 10))
+            }
             Divider()
             Text("◷ 轻提醒\n点击任务卡上的铃铛可切换提醒强度 · 无声音").font(.system(size: 9)).lineSpacing(4).foregroundStyle(Palette.muted)
             HStack(spacing: 8) {

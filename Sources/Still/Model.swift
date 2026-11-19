@@ -13,6 +13,7 @@ import Observation
     private(set) var storageError: String?
     @ObservationIgnored var onCompletion: (([Countdown], Bool) -> Void)?
     @ObservationIgnored var previewReminder: (() -> Void)?
+    @ObservationIgnored var previewDraftReminder: ((String, String, Int) -> Void)?
     @ObservationIgnored private var loading = true
     @ObservationIgnored private var writable = true
     @ObservationIgnored private var needsLegacyBackup = false
@@ -228,14 +229,14 @@ import Observation
         return choices.first { $0 != tasks.last?.slot } ?? choices.first ?? 0
     }
 
-    func add(_ name: String, minutes: Double, startImmediately: Bool = false) {
+    func add(_ name: String, minutes: Double, completionMessage: String? = nil, startImmediately: Bool = false) {
         guard minutes.isFinite, minutes >= 1.0 / 60, minutes <= 1440 else { return }
         let sequence = startImmediately ? allocateRunSequence() : nil
         guard !startImmediately || sequence != nil else { return }
         let duration = minutes * 60
         let task = Countdown(name: name.isEmpty ? "新的倒计时" : String(name.prefix(40)), duration: duration,
                              deadline: startImmediately ? clock().addingTimeInterval(duration) : nil,
-                             frozen: duration, slot: nextColorSlot(), reminderLevel: .light, runSequence: sequence)
+                             frozen: duration, slot: nextColorSlot(), reminderLevel: .light, runSequence: sequence, completionMessage: CompletionMessage.normalized(completionMessage))
         commitTasks(tasks + [task])
     }
 }

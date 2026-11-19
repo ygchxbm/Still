@@ -5,6 +5,27 @@ enum ReminderLevel: String, Codable, CaseIterable {
     var next: Self { Self.allCases[(Self.allCases.firstIndex(of: self)! + 1) % Self.allCases.count] }
 }
 
+enum CompletionMessage {
+    static let defaultText = "时间到了，按自己的节奏继续。"
+    static let maximumLength = 80
+
+    // Match the HTML field's UTF-16 budget without splitting a character.
+    static func limited(_ value: String) -> String {
+        var result = "", length = 0
+        for character in value {
+            let size = String(character).utf16.count
+            guard length + size <= maximumLength else { break }
+            result.append(character)
+            length += size
+        }
+        return result
+    }
+    static func normalized(_ value: String?) -> String {
+        let text = limited((value ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
+        return text.isEmpty ? defaultText : text
+    }
+}
+
 struct Countdown: Identifiable, Codable, Equatable {
     var id = UUID()
     var name: String
@@ -15,6 +36,9 @@ struct Countdown: Identifiable, Codable, Equatable {
     var reminderLevel: ReminderLevel?
     var runSequence: Int?
     var originalDuration: TimeInterval?
+    var completionMessage: String?
+
+    var completionText: String { CompletionMessage.normalized(completionMessage) }
 
     var isExtension: Bool { originalDuration != nil }
     var intensity: ReminderLevel { reminderLevel ?? .light }

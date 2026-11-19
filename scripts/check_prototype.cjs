@@ -20,7 +20,7 @@ assert.match(final,/reminder:\s*["']light["']/);assert.match(final,/level:\s*t.r
 console.log(version+': all HTML scripts parse; menu selection scenarios pass; finalized entry checks pass. Browser acceptance remains separate.');
 const eventBlock=final.match(/\$\("#timers"\)\.onclick = e => \{[\s\S]*?\n\};/)[0];
 const area={};ctx.$=()=>area;ctx.render=()=>{};ctx.tick=()=>{};ctx.showAlert=()=>{};ctx.alerts=[];
-if (['v1.8', 'v1.9'].includes(version)) {
+if (['v1.8', 'v1.9', 'v2.0'].includes(version)) {
  for (const name of ['restoreOriginalDuration','addFiveMinutes']) {
   vm.runInContext(final.match(new RegExp('function '+name+'\\(t\\) \\{[\\s\\S]*?\\n\\}'))[0],ctx);
  }
@@ -109,10 +109,10 @@ if (version === 'v1.8') {
  console.log('v1.8: independent extension, repeat extension, original duration restoration, idle icon and review cleanup checks pass.');
 }
 
-if (version === 'v1.9') {
+if (['v1.9', 'v2.0'].includes(version)) {
  assert(!/copyReview|revised\(|comparisonPanel|comparisonGroups|copy-review|data-copy-|reviewStorageKey|simulatedStorageProblem|previewParameters/.test(final), 'Review code or forced preview state remains');
  assert(!/still-draft-prototype|still-archive-prototype|时间已冻结|已专注|知道了，完成|色位|灵感 II|菜单栏与通知/.test(final), 'Unselected copy or storage key remains');
- assert.match(final,/still-final-prototype-v1\.9/);
+ assert(final.includes('still-final-prototype-'+version));
  assert(!/extension-actions|data-action="plus"|action === "plus"/.test(final));
  for (const name of [`留白-${version}-方案存档.html`,'版本迭代.md']) assert(fs.existsSync(path.join(folder,name)));
  assert(!fs.existsSync(path.join(folder,`留白-${version}-未定稿.html`)));
@@ -135,7 +135,29 @@ if (version === 'v1.9') {
  ctx.addFiveMinutes(task);assert.equal(task.originalTotal,1500000);assert.equal(task.total,300000);assert.equal(task.remaining,300000);
  ctx.restoreOriginalDuration(task);assert.equal(task.total,1500000);assert.equal(task.extensionStage,undefined);
  const archive=fs.readFileSync(path.join(folder,`留白-${version}-方案存档.html`),'utf8');
- assert.match(archive,/1:B、2:B、3:B、4:B、5:B、6:B/);
- assert.match(archive,/still-archive-prototype-v1\.9/);
- console.log('v1.9: accepted copy, precise durations, normal/error storage states, overwrite protection, independent extension, archive and cleanup checks pass.');
+ assert.match(archive,version === 'v1.9' ? /1:B、2:B、3:B、4:B、5:B、6:B/ : /1:B、2:B/);
+ assert(archive.includes('still-archive-prototype-'+version));
+ console.log(version+': accepted copy, precise durations, normal/error storage states, overwrite protection, independent extension, archive and cleanup checks pass.');
+}
+
+if (version === 'v2.0') {
+ assert(!/prototypeChoices|prototypeReview|prototype-review|prototype-tabs|prototype-draft|proposalPanel|settingsDone|settingsBack|completion-presets|completion-toggle|completion-summary|message-preset|backScheme|messageScheme/.test(final), 'Unselected v2.0 scheme or review code remains');
+ assert.equal(fs.readdirSync(folder).length, 3, 'Final version must contain exactly three documents');
+ assert.match(final, /headerBack.onclick = \(\) => settingsView\(false\)/);
+ assert.match(final, /settingsBrand.hidden = on/);
+ assert.match(final, /maxlength="80"/);
+ assert.match(final, /data-message-action="default"/);
+ assert.match(final, /data-message-action="preview"/);
+ assert.match(final, /completionMessage: normalizeCompletionMessage\(form.elements.completionMessage.value\)/);
+ vm.runInContext(final.match(/const DEFAULT_COMPLETION_MESSAGE = [^;]*;/)[0] + '\n' + final.match(/function normalizeCompletionMessage\(value\) \{[\s\S]*?\n\}/)[0], ctx);
+ assert.equal(ctx.normalizeCompletionMessage(undefined), '时间到了，按自己的节奏继续。');
+ assert.equal(ctx.normalizeCompletionMessage('  \n '), '时间到了，按自己的节奏继续。');
+ assert.equal(ctx.normalizeCompletionMessage('  <提醒>\n喝水 & 休息  '), '<提醒>\n喝水 & 休息');
+ assert.equal(ctx.normalizeCompletionMessage('字'.repeat(81)).length, 80);
+ vm.runInContext(final.match(/function visibleCompletionMessage\(event\) \{[\s\S]*?\n\}/)[0], ctx);
+ assert.equal(ctx.visibleCompletionMessage({completionMessage:'自定义提示'}), '自定义提示');
+ assert.equal(ctx.visibleCompletionMessage({}), '时间到了，按自己的节奏继续。');
+ const iteration = fs.readFileSync(path.join(folder, '版本迭代.md'), 'utf8');
+ assert(iteration.includes('1:B') && iteration.includes('2:B'));
+ console.log('v2.0: B/B scheme cleanup, header navigation, direct editor, defaults, length limit and plain text pass.');
 }

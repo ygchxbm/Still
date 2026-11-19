@@ -15,6 +15,10 @@ struct ReminderEvent {
         self.preview = preview
     }
 
+    var completionText: String { tasks.count == 1 ? tasks[0].completionText : CompletionMessage.defaultText }
+
+    var hasLongMessage: Bool { completionText.utf16.count > 30 || completionText.filter { $0 == "\n" }.count > 1 }
+
     func matchingCurrentTasks(_ currentTasks: [Countdown]) -> ReminderEvent? {
         if preview { return self }
         let completed = currentTasks.filter { $0.deadline == nil && $0.frozen == 0 }
